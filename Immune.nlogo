@@ -1,4 +1,4 @@
-globals [max-lymphs coloring]  ; keep track of how much grass there is
+globals [bluelymphs redlymphs yellowlymphs coloring color-number]  ;
 ; Lymphocytes are  breeds of turtle.
 breed [ lymphocytes lymphocyte ]  ; creating a set of lymphocytes
 turtles-own [ energy ]       ; both wolves and sheep have energy
@@ -6,10 +6,11 @@ patches-own [ countdown ]
 
 to setup
   clear-all
-  set max-lymphs 100000
   ask patches [ set pcolor grey ]
-
-
+  set bluelymphs 0
+  set redlymphs 0
+  set yellowlymphs 0
+  set color-number number-lymphocytes / 3
   set-default-shape lymphocytes "circle"
   create-lymphocytes number-lymphocytes  ; create the lymphocytes, then initialize their variables
   [
@@ -17,14 +18,17 @@ to setup
     if coloring = 0
     [
     set color blue
+    set bluelymphs bluelymphs + 1
     ]
     if coloring = 1
     [
       set color red
+      set redlymphs redlymphs + 1
     ]
     if coloring = 2
     [
       set color yellow
+      set yellowlymphs yellowlymphs + 1
     ]
     set size 1.5  ; easier to see
     set label-color blue - 2
@@ -32,7 +36,7 @@ to setup
     setxy random-xcor random-ycor
   ]
 
-  display-labels
+
 
   reset-ticks
 end
@@ -41,10 +45,39 @@ to go
   if not any? turtles [ stop ]
   ask lymphocytes [
     move
-    lose-energy
+    reproduce
     death
   ]
-  display-labels
+      if redlymphs < 1
+      [
+         create-lymphocytes 1
+         [set color red
+         set size 1.5  ; easier to see
+         set label-color blue - 2
+         set energy random 100
+    setxy random-xcor random-ycor ]
+         set redlymphs 1
+      ]
+      if bluelymphs < 1
+      [
+         create-lymphocytes 1
+         [set color blue
+         set size 1.5  ; easier to see
+         set label-color blue - 2
+         set energy random 100
+      setxy random-xcor random-ycor]
+         set bluelymphs 1
+      ]
+      if yellowlymphs < 1
+      [
+         create-lymphocytes 1
+         [set color yellow
+         set size 1.5  ; easier to see
+         set label-color blue - 2
+         set energy random 100
+      setxy random-xcor random-ycor ]
+         set yellowlymphs 1
+      ]
   tick
  end
 
@@ -54,21 +87,87 @@ to move  ; turtle procedure
   fd 1
 end
 
-to lose-energy
-  set energy energy - random death-rate
-end
-
 to death  ; turtle procedure
   ; when energy dips below zero, die
-  if energy < 0 [ die ]
+      if color = red
+      [
+        if random 100 + color-number < death-rate + redlymphs
+        [
+        set redlymphs redlymphs - 1
+        die
+        ]
+      ]
+      if color = blue
+      [
+        if random 100 + color-number < death-rate + bluelymphs
+        [
+        set bluelymphs bluelymphs - 1
+        die
+        ]
+      ]
+      if color = yellow
+      [
+        if random 100 + color-number < death-rate + yellowlymphs
+        [
+        set yellowlymphs yellowlymphs - 1
+        die
+        ]
+      ]
+
 end
 
-to display-labels
-  ask turtles [ set label "" ]
-  if show-energy? [
-    ask lymphocytes [ set label round energy ]
-  ]
+
+to reproduce  ; sheep procedure
+        if color = red
+      [
+        if random 100 < reproduction-rate + color-number - redlymphs
+        [
+        set redlymphs redlymphs + 1
+    hatch 1 [ rt random-float 360 fd 1]
+        ]
+      ]
+      if color = blue
+      [
+        if random 100 < reproduction-rate + color-number - bluelymphs
+        [
+        set bluelymphs bluelymphs + 1
+      hatch 1 [ rt random-float 360 fd 1]
+        ]
+      ]
+      if color = yellow
+      [
+        if random 100  < reproduction-rate + color-number - yellowlymphs
+        [
+        set yellowlymphs yellowlymphs + 1
+      hatch 1 [ rt random-float 360 fd 1]
+        ]
+      ]
 end
+
+
+
+
+
+
+
+
+
+
+;to eat-grass  ; sheep procedure
+  ; sheep eat grass, turn the patch brown
+ ; if pcolor = green [
+  ;  set pcolor brown
+   ; set energy energy + sheep-gain-from-food  ; sheep gain energy by eating
+ ; ]
+;end
+
+
+;to catch-sheep  ; wolf procedure
+ ; let prey one-of sheep-here                    ; grab a random sheep
+  ;if prey != nobody                             ; did we get one?  if so,
+   ; [ ask prey [ die ]                          ; kill it
+    ;  set energy energy + wolf-gain-from-food ] ; get energy from eating
+;end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -97,21 +196,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-SLIDER
-8
-72
-187
-105
-number-lymphocytes
-number-lymphocytes
-0.0
-200.0
-100.0
-1.0
-1
-NIL
-HORIZONTAL
 
 BUTTON
 8
@@ -148,10 +232,10 @@ NIL
 0
 
 PLOT
-9
-175
-325
-372
+12
+197
+328
+394
 populations
 time
 pop.
@@ -163,40 +247,62 @@ true
 true
 "" ""
 PENS
-"lymphocytes" 1.0 0 -13345367 true "" "plot count lymphocytes"
+"lymphocytes" 1.0 0 -6917194 true "" "plot count lymphocytes"
+"red" 1.0 0 -2674135 true "" "plot redlymphs"
+"blue" 1.0 0 -13345367 true "" "plot bluelymphs"
+"yellow" 1.0 0 -1184463 true "" "plot yellowlymphs"
 
 MONITOR
-9
-119
-101
-164
-lymphoctyes
+209
+140
+301
+185
+lymphocytes
 count lymphocytes
 3
 1
 11
 
-SWITCH
-167
-28
-303
-61
-show-energy?
-show-energy?
-0
+SLIDER
+14
+109
+186
+142
+death-rate
+death-rate
 1
--1000
+20
+18.0
+1
+1
+NIL
+HORIZONTAL
 
 SLIDER
-125
-122
-297
-155
-death-rate
-death-rate
-0
-10
-2.0
+13
+68
+200
+101
+number-lymphocytes
+number-lymphocytes
+50
+200
+183.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+15
+151
+187
+184
+reproduction-rate
+reproduction-rate
+1
+20
+17.0
 1
 1
 NIL
