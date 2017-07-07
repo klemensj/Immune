@@ -1,97 +1,123 @@
-globals [bluelymphs redlymphs yellowlymphs coloring color-number]  ;
-; Lymphocytes are  breeds of turtle.
-breed [ lymphocytes lymphocyte ]  ; creating a set of lymphocytes
-turtles-own [ energy ]       ; both wolves and sheep have energy
-patches-own [ countdown ]
+globals [bluelymphs redlymphs yellowlymphs coloring avg-lymphs-per-color death-rate]
+; bluelymphs = number of lymphocytes that are blue
+; redlymphs = number of lymphocytes that are red
+; yellowlymphs = number of lymphocytes that are yellow
+; coloring = variable to randomly generate color of each lymphocyte
+; avg-lymphs-per-color = number of lymphocytes of each color on average
+
+breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
+breed [antigens antigen]        ; creating a set of antigens
+breed [antibodies antibody]     ; creating a set of antibodies
+lymphocytes-own [active reproduction-rate]
+antibodies-own [energy]
 
 to setup
   clear-all
-  ask patches [ set pcolor grey ]
-  set bluelymphs 0
-  set redlymphs 0
-  set yellowlymphs 0
-  set color-number number-lymphocytes / 3
-  set-default-shape lymphocytes "circle"
+  ask patches [ set pcolor grey + 2]
+  set bluelymphs 0                        ; reset count of blue lymphocytes to 0
+  set redlymphs 0                         ; reset count of red lymphocytes to 0
+  set yellowlymphs 0                      ; reset count of yellow lymphocytes to 0
+  set avg-lymphs-per-color number-lymphocytes / 3
+  set death-rate 10
+  set-default-shape lymphocytes "circle"  ; lymphocytes are circles
+  set-default-shape antigens "star"       ; antigens are stars
+  set-default-shape antibodies "Y"        ; antibodies are Y-shaped
   create-lymphocytes number-lymphocytes  ; create the lymphocytes, then initialize their variables
   [
     set coloring random 3  ; assign each lymphocytes a color randomly
     if coloring = 0
     [
     set color blue
-    set bluelymphs bluelymphs + 1
+    set bluelymphs bluelymphs + 1 ; each time a blue lymphocyte is created, add one to total count of blue lymphocytes
     ]
     if coloring = 1
     [
       set color red
-      set redlymphs redlymphs + 1
+      set redlymphs redlymphs + 1 ; each time a red lymphocyte is created, add one to total count of red lymphocytes
     ]
     if coloring = 2
     [
       set color yellow
-      set yellowlymphs yellowlymphs + 1
+      set yellowlymphs yellowlymphs + 1 ; each time a yellow lymphocyte is created, add one to total count of yellow lymphocytes
     ]
+    set active 0 ; all lymphocytes are initially inactive
+    set reproduction-rate 10
     set size 1.5  ; easier to see
     set label-color blue - 2
-    set energy random 100
     setxy random-xcor random-ycor
   ]
-
-
-
   reset-ticks
 end
 
 to go
   if not any? turtles [ stop ]
+  make-antigen
+  ask antigens[
+    move
+    antigen-reproduce
+  ]
   ask lymphocytes [
+    bind
+    activated
     move
     reproduce
-    death
+    lymph-death
   ]
-      if redlymphs < 1
-      [
-         create-lymphocytes 1
-         [set color red
-         set size 1.5  ; easier to see
-         set label-color blue - 2
-         set energy random 100
-    setxy random-xcor random-ycor ]
-         set redlymphs 1
-      ]
-      if bluelymphs < 1
-      [
-         create-lymphocytes 1
-         [set color blue
-         set size 1.5  ; easier to see
-         set label-color blue - 2
-         set energy random 100
-      setxy random-xcor random-ycor]
-         set bluelymphs 1
-      ]
-      if yellowlymphs < 1
-      [
-         create-lymphocytes 1
-         [set color yellow
-         set size 1.5  ; easier to see
-         set label-color blue - 2
-         set energy random 100
-      setxy random-xcor random-ycor ]
-         set yellowlymphs 1
-      ]
+  ask antibodies [
+    antibody-move
+    set energy energy - 1
+    antibody-death
+  ]
   tick
  end
 
-to move  ; turtle procedure
+to make-antigen ; create an antigen evey now and again
+  if random 100 < 2
+  [
+    create-antigens 1
+    [
+     set color black
+     set size 2  ; easier to see
+     set label-color blue - 2
+     setxy random-xcor random-ycor
+    ]
+  ]
+end
+
+to bind ; yellow lymphocytes are activated by the antigen
+ if color = yellow[
+   if one-of antigens-here != nobody
+   [
+     set active 1
+   ]
+  ]
+end
+
+to move  ; antigen and lymphocyte procedure
   rt random 50
   lt random 50
   fd 1
 end
 
-to death  ; turtle procedure
-  ; when energy dips below zero, die
+to activated
+  if active = 1
+  [
+    set reproduction-rate 35 ; increase reproduction rate
+    set size 2               ; increase size
+    set shape "bold-circle"  ; outline circle
+    hatch-antibodies 5       ; create antibodies
+    [
+      set color black
+      rt random-float 360 fd 1  ; randomly pick a direction and move forward
+      set energy 4 ; for antibodies, energy tracks how many ticks the antibodies have left to live
+    ]
+  ]
+end
+
+to lymph-death  ; determine if the lymphocyte dies
       if color = red
       [
-        if random 100 + color-number < death-rate + redlymphs
+        if random 100 + avg-lymphs-per-color < death-rate + redlymphs
         [
         set redlymphs redlymphs - 1
         die
@@ -99,7 +125,7 @@ to death  ; turtle procedure
       ]
       if color = blue
       [
-        if random 100 + color-number < death-rate + bluelymphs
+        if random 100 + avg-lymphs-per-color < death-rate + bluelymphs
         [
         set bluelymphs bluelymphs - 1
         die
@@ -107,73 +133,93 @@ to death  ; turtle procedure
       ]
       if color = yellow
       [
-        if random 100 + color-number < death-rate + yellowlymphs
+        if random 100 + avg-lymphs-per-color < death-rate + yellowlymphs
         [
         set yellowlymphs yellowlymphs - 1
         die
         ]
       ]
-
 end
 
-
-to reproduce  ; sheep procedure
-        if color = red
-      [
-        if random 100 < reproduction-rate + color-number - redlymphs
-        [
-        set redlymphs redlymphs + 1
-    hatch 1 [ rt random-float 360 fd 1]
-        ]
+to reproduce  ; determine if the lymphocyte reproduces
+  if color = red
+  [
+     if random 100 < reproduction-rate + avg-lymphs-per-color - redlymphs
+     [
+       set redlymphs redlymphs + 1
+       hatch 1 [ rt random-float 360 fd 1]
       ]
-      if color = blue
-      [
-        if random 100 < reproduction-rate + color-number - bluelymphs
-        [
-        set bluelymphs bluelymphs + 1
-      hatch 1 [ rt random-float 360 fd 1]
-        ]
+  ]
+  if color = blue
+  [
+     if random 100 < reproduction-rate + avg-lymphs-per-color - bluelymphs
+     [
+       set bluelymphs bluelymphs + 1
+       hatch 1 [ rt random-float 360 fd 1]
       ]
-      if color = yellow
+   ]
+   if color = yellow
+   [
+      if random 100  < reproduction-rate + avg-lymphs-per-color - yellowlymphs
       [
-        if random 100  < reproduction-rate + color-number - yellowlymphs
-        [
         set yellowlymphs yellowlymphs + 1
-      hatch 1 [ rt random-float 360 fd 1]
+        hatch 1
+        [
+        set color yellow
+          ifelse active = 1 and random 4 < 1 ; if the yellow lymphocyte is active, determine if it creates an active or inactive lymphocyte
+            [
+               set shape "bold-circle"
+               set size 2
+               set active 1
+               set reproduction-rate 35
+            ]
+            [
+              set shape "circle"
+              set size 1.5
+              set active 0
+              set reproduction-rate 10
+            ]
+        rt random-float 360 fd 1
         ]
       ]
+   ]
 end
 
+to antibody-move
+  fd 1
+  kill-antigen  ; check to see if it is on the same spot as an antigen and if so, kill it
+  fd 1
+  kill-antigen
+  fd 1
+  kill-antigen
+  fd 1
+  kill-antigen
+  fd 1
+  kill-antigen
+end
 
+to antibody-death
+  if energy < 1
+  [ die ]
+end
 
+to antigen-reproduce
+    if random 100 < 5
+    [
+      hatch 1 [ rt random 360 fd 1]
+    ]
+end
 
-
-
-
-
-
-
-;to eat-grass  ; sheep procedure
-  ; sheep eat grass, turn the patch brown
- ; if pcolor = green [
-  ;  set pcolor brown
-   ; set energy energy + sheep-gain-from-food  ; sheep gain energy by eating
- ; ]
-;end
-
-
-;to catch-sheep  ; wolf procedure
- ; let prey one-of sheep-here                    ; grab a random sheep
-  ;if prey != nobody                             ; did we get one?  if so,
-   ; [ ask prey [ die ]                          ; kill it
-    ;  set energy energy + wolf-gain-from-food ] ; get energy from eating
-;end
-
+to kill-antigen
+  let prey one-of antigens-here
+  if prey != nobody
+  [ask prey[die]]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-350
+483
 10
-817
+950
 478
 -1
 -1
@@ -198,10 +244,10 @@ ticks
 30.0
 
 BUTTON
-8
-28
-77
-61
+9
+10
+78
+43
 setup
 setup
 NIL
@@ -215,10 +261,10 @@ NIL
 1
 
 BUTTON
-90
-28
-157
-61
+91
+10
+158
+43
 go
 go
 T
@@ -232,11 +278,11 @@ NIL
 0
 
 PLOT
-12
-197
-328
-394
-populations
+9
+55
+330
+205
+Lymphocyte populations
 time
 pop.
 0.0
@@ -253,10 +299,10 @@ PENS
 "yellow" 1.0 0 -1184463 true "" "plot yellowlymphs"
 
 MONITOR
-209
-140
-301
-185
+340
+57
+432
+102
 lymphocytes
 count lymphocytes
 3
@@ -264,25 +310,10 @@ count lymphocytes
 11
 
 SLIDER
-14
-109
-186
-142
-death-rate
-death-rate
-1
-20
-18.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-13
-68
-200
-101
+169
+11
+356
+44
 number-lymphocytes
 number-lymphocytes
 50
@@ -293,131 +324,102 @@ number-lymphocytes
 NIL
 HORIZONTAL
 
-SLIDER
-15
-151
-187
-184
-reproduction-rate
-reproduction-rate
+PLOT
+12
+218
+332
+350
+Antibody Population
+time
+pop.
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"antibodies" 1.0 0 -16777216 true "" "plot count antibodies"
+
+PLOT
+14
+363
+333
+496
+Antigen Population
+time
+pop.
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"antigens" 1.0 0 -16777216 true "" "plot count antigens"
+
+MONITOR
+340
+219
+418
+264
+antibodies
+count antibodies
+17
 1
-20
-17.0
+11
+
+MONITOR
+339
+363
+418
+408
+antigens
+count antigens
+17
 1
-1
-NIL
-HORIZONTAL
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model explores the stability of predator-prey ecosystems. Such a system is called unstable if it tends to result in extinction for one or more species involved.  In contrast, a system is stable if it tends to maintain itself over time, despite fluctuations in population sizes.
+This model intends to show how the immune system reacts to an antigen in the body.  When an antigen appears, it activates particular lymphocytes which in turn increase their reproduction rate and start creating antigens which then kill the antigen.  The goal of this model is to increase basic understanding of how the immune system works.
 
 ## HOW IT WORKS
 
-There are two main variations to this model.
-
-In the first variation, wolves and sheep wander randomly around the landscape, while the wolves look for sheep to prey on. Each step costs the wolves energy, and they must eat sheep in order to replenish their energy - when they run out of energy they die. To allow the population to continue, each wolf or sheep has a fixed probability of reproducing at each time step. This variation produces interesting population dynamics, but is ultimately unstable.
-
-The second variation includes grass (green) in addition to wolves and sheep. The behavior of the wolves is identical to the first variation, however this time the sheep must eat grass in order to maintain their energy - when they run out of energy they die. Once grass is eaten it will only regrow after a fixed amount of time. This variation is more complex than the first, but it is generally stable.
-
-The construction of this model is described in two papers by Wilensky & Reisman referenced below.
+(what rules the agents use to create the overall behavior of the model)
 
 ## HOW TO USE IT
 
-1. Set the GRASS? switch to TRUE to include grass in the model, or to FALSE to only include wolves (red) and sheep (white).
-2. Adjust the slider parameters (see below), or use the default settings.
-3. Press the SETUP button.
-4. Press the GO button to begin the simulation.
-5. Look at the monitors to see the current population sizes
-6. Look at the POPULATIONS plot to watch the populations fluctuate over time
-
-Parameters:
-INITIAL-NUMBER-SHEEP: The initial size of sheep population
-INITIAL-NUMBER-WOLVES: The initial size of wolf population
-SHEEP-GAIN-FROM-FOOD: The amount of energy sheep get for every grass patch eaten
-WOLF-GAIN-FROM-FOOD: The amount of energy wolves get for every sheep eaten
-SHEEP-REPRODUCE: The probability of a sheep reproducing at each time step
-WOLF-REPRODUCE: The probability of a wolf reproducing at each time step
-GRASS?: Whether or not to include grass in the model
-GRASS-REGROWTH-TIME: How long it takes for grass to regrow once it is eaten
-SHOW-ENERGY?: Whether or not to show the energy of each animal as a number
-
-Notes:
-- one unit of energy is deducted for every step a wolf takes
-- when grass is included, one unit of energy is deducted for every step a sheep takes
+(how to use the model, including a description of each of the items in the Interface tab)
 
 ## THINGS TO NOTICE
 
-When grass is not included, watch as the sheep and wolf populations fluctuate. Notice that increases and decreases in the sizes of each population are related. In what way are they related? What eventually happens?
-
-Once grass is added, notice the green line added to the population plot representing fluctuations in the amount of grass. How do the sizes of the three populations appear to relate now? What is the explanation for this?
-
-Why do you suppose that some variations of the model might be stable while others are not?
+(suggested things for the user to notice while running the model)
 
 ## THINGS TO TRY
 
-Try adjusting the parameters under various settings. How sensitive is the stability of the model to the particular parameters?
-
-Can you find any parameters that generate a stable ecosystem that includes only wolves and sheep?
-
-Try setting GRASS? to TRUE, but setting INITIAL-NUMBER-WOLVES to 0. This gives a stable ecosystem with only sheep and grass. Why might this be stable while the variation with only sheep and wolves is not?
-
-Notice that under stable settings, the populations tend to fluctuate at a predictable pace. Can you find any parameters that will speed this up or slow it down?
-
-Try changing the reproduction rules -- for example, what would happen if reproduction depended on energy rather than being determined by a fixed probability?
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
 ## EXTENDING THE MODEL
 
-There are a number ways to alter the model so that it will be stable with only wolves and sheep (no grass). Some will require new elements to be coded in or existing behaviors to be changed. Can you develop such a version?
-
-Can you modify the model so the sheep will flock?
-
-Can you modify the model so that wolf actively chase sheep?
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
 ## NETLOGO FEATURES
 
-Note the use of breeds to model two different kinds of "turtles": wolves and sheep. Note the use of patches to model grass.
-
-Note use of the ONE-OF agentset reporter to select a random sheep to be eaten by a wolf.
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
 
 ## RELATED MODELS
 
-Look at Rabbits Grass Weeds for another model of interacting populations with different rules.
+(models in the NetLogo Models Library and elsewhere which are of related interest)
 
 ## CREDITS AND REFERENCES
 
-Wilensky, U. & Reisman, K. (1999). Connected Science: Learning Biology through Constructing and Testing Computational Theories -- an Embodied Modeling Approach. International Journal of Complex Systems, M. 234, pp. 1 - 12. (This model is a slightly extended version of the model described in the paper.)
+Created by Sarah Gift with help from Jeff Klemens
 
-Wilensky, U. & Reisman, K. (2006). Thinking like a Wolf, a Sheep or a Firefly: Learning Biology through Constructing and Testing Computational Theories -- an Embodied Modeling Approach. Cognition & Instruction, 24(2), pp. 171-209. http://ccl.northwestern.edu/papers/wolfsheep.pdf
-
-## HOW TO CITE
-
-If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
-
-For the model itself:
-
-* Wilensky, U. (1997).  NetLogo Wolf Sheep Predation model.  http://ccl.northwestern.edu/netlogo/models/WolfSheepPredation.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-Please cite the NetLogo software as:
-
-* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-## COPYRIGHT AND LICENSE
-
-Copyright 1997 Uri Wilensky.
-
-![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
-
-This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
-
-Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
-
-This model was created as part of the project: CONNECTED MATHEMATICS: MAKING SENSE OF COMPLEX PHENOMENA THROUGH BUILDING OBJECT-BASED PARALLEL MODELS (OBPML).  The project gratefully acknowledges the support of the National Science Foundation (Applications of Advanced Technologies Program) -- grant numbers RED #9552950 and REC #9632612.
-
-This model was converted to NetLogo as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227. Converted from StarLogoT to NetLogo, 2000.
-
-<!-- 1997 2000 -->
+2017
 @#$#@#$#@
 default
 true
@@ -433,6 +435,12 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+bold-circle
+false
+0
+Circle -16777216 true false 0 0 300
+Circle -7500403 true true 30 30 240
 
 box
 false
@@ -723,6 +731,13 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
+y
+true
+0
+Line -7500403 true 60 60 150 150
+Line -7500403 true 150 150 225 60
+Line -7500403 true 150 150 150 255
 @#$#@#$#@
 NetLogo 6.0.1
 @#$#@#$#@
