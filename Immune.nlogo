@@ -72,7 +72,6 @@ to replace-extinct     ; this is a "rescue effect", if any lymphocyte types go e
       create-lymphocytes 2  ; create the lymphocytes, then initialize their variables
       [
         set color counter
-        show counter
         set active 0
         set reproduction-rate 10
         set size 1.5  ; easier to see
