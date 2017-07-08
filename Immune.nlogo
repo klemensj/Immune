@@ -1,4 +1,4 @@
-globals [bluelymphs redlymphs yellowlymphs coloring avg-lymphs-per-color death-rate]
+globals [coloring avg-lymphs-per-color death-rate]
 ; bluelymphs = number of lymphocytes that are blue
 ; redlymphs = number of lymphocytes that are red
 ; yellowlymphs = number of lymphocytes that are yellow
@@ -8,38 +8,29 @@ globals [bluelymphs redlymphs yellowlymphs coloring avg-lymphs-per-color death-r
 breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
 breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
-lymphocytes-own [active reproduction-rate]
+lymphocytes-own [active active-time reproduction-rate]
 antibodies-own [energy]
 
 to setup
   clear-all
-  ask patches [ set pcolor grey + 2]
-  set bluelymphs 0                        ; reset count of blue lymphocytes to 0
-  set redlymphs 0                         ; reset count of red lymphocytes to 0
-  set yellowlymphs 0                      ; reset count of yellow lymphocytes to 0
-  set avg-lymphs-per-color number-lymphocytes / 3
+  ask patches [ set pcolor white]
+
+  ; removed the separate variables for diff color lymphocytes
+  ; we can ask to count lymphocytes by color at any point
+  ; coding will get really awkward as we add more colors
+
+
+
+;  set avg-lymphs-per-color number-lymphocytes / 3
   set death-rate 10
   set-default-shape lymphocytes "circle"  ; lymphocytes are circles
-  set-default-shape antigens "star"       ; antigens are stars
+  set-default-shape antigens "monster"       ; antigens are monsters
   set-default-shape antibodies "Y"        ; antibodies are Y-shaped
   create-lymphocytes number-lymphocytes  ; create the lymphocytes, then initialize their variables
   [
-    set coloring random 3  ; assign each lymphocytes a color randomly
-    if coloring = 0
-    [
-    set color blue
-    set bluelymphs bluelymphs + 1 ; each time a blue lymphocyte is created, add one to total count of blue lymphocytes
-    ]
-    if coloring = 1
-    [
-      set color red
-      set redlymphs redlymphs + 1 ; each time a red lymphocyte is created, add one to total count of red lymphocytes
-    ]
-    if coloring = 2
-    [
-      set color yellow
-      set yellowlymphs yellowlymphs + 1 ; each time a yellow lymphocyte is created, add one to total count of yellow lymphocytes
-    ]
+    set color one-of base-colors         ; base-colors is a built in list of 14 colors callable by name --
+                                         ; numbers between 0 and 140 that end in "5"
+
     set active 0 ; all lymphocytes are initially inactive
     set reproduction-rate 10
     set size 1.5  ; easier to see
@@ -51,6 +42,7 @@ end
 
 to go
   if not any? turtles [ stop ]
+  replace-extinct                   ; this new function lets us simplify reproduction, it's just a rescue effect
   make-antigen
   ask antigens[
     move
@@ -71,10 +63,32 @@ to go
   tick
  end
 
-to make-antigen ; create an antigen evey now and again
-  if random 100 < 2
+to replace-extinct     ; this is a "rescue effect", if any lymphocyte types go extinct we add two more to the population
+  let counter 5
+  while [counter < 140]
   [
-    create-antigens 1
+    if count lymphocytes with [color = counter] = 0
+  [
+      create-lymphocytes 2  ; create the lymphocytes, then initialize their variables
+      [
+        set color counter
+        show counter
+        set active 0
+        set reproduction-rate 10
+        set size 1.5  ; easier to see
+        set label-color blue - 2
+        setxy random-xcor random-ycor
+      ]
+  ]
+  set counter counter + 10
+]
+
+end
+
+to make-antigen                               ; create an infection every 100 ticks of the clock
+  if (ticks > 1) and (ticks mod 100 = 0)
+  [
+    create-antigens 5
     [
      set color black
      set size 2  ; easier to see
@@ -84,11 +98,12 @@ to make-antigen ; create an antigen evey now and again
   ]
 end
 
-to bind ; yellow lymphocytes are activated by the antigen
+to bind                                          ; yellow lymphocytes are activated by the antigen
  if color = yellow[
    if one-of antigens-here != nobody
    [
      set active 1
+     set active-time 10   ;; length of typical cell lifespan if death rate is 10
    ]
   ]
 end
@@ -99,10 +114,20 @@ to move  ; antigen and lymphocyte procedure
   fd 1
 end
 
-to activated
+to activated                                         ; we aren't quite right with the biology in this function
+                                                     ; the model they are taught in textbook, an activated lymphocyte
+                                                     ; produces both memory and effector cells
+                                                     ; rather than effectors becoming "deactivated" this works for now
+  if active-time < 1                                 ; turns activated back into regular when times up
+    [
+      set active 0
+      set reproduction-rate 10   ; return reproductive rate to normal
+      set size 1.5               ; return size to normal
+      set shape "circle"         ; return shape to normal
+  ]
   if active = 1
   [
-    set reproduction-rate 35 ; increase reproduction rate
+    set reproduction-rate 25 ; start rapid reproduction
     set size 2               ; increase size
     set shape "bold-circle"  ; outline circle
     hatch-antibodies 5       ; create antibodies
@@ -111,85 +136,30 @@ to activated
       rt random-float 360 fd 1  ; randomly pick a direction and move forward
       set energy 4 ; for antibodies, energy tracks how many ticks the antibodies have left to live
     ]
+   set active-time active-time - 1    ;; counts back down to inactivity
+
   ]
 end
 
 to lymph-death  ; determine if the lymphocyte dies
-      if color = red
+
+      if random 100 < death-rate      ; keep the death rate constant for now and we can tweak reproductive rates
       [
-        if random 100 + avg-lymphs-per-color < death-rate + redlymphs
-        [
-        set redlymphs redlymphs - 1
         die
-        ]
-      ]
-      if color = blue
-      [
-        if random 100 + avg-lymphs-per-color < death-rate + bluelymphs
-        [
-        set bluelymphs bluelymphs - 1
-        die
-        ]
-      ]
-      if color = yellow
-      [
-        if random 100 + avg-lymphs-per-color < death-rate + yellowlymphs
-        [
-        set yellowlymphs yellowlymphs - 1
-        die
-        ]
       ]
 end
 
 to reproduce  ; determine if the lymphocyte reproduces
-  if color = red
+
+ if random 100 < reproduction-rate
   [
-     if random 100 < reproduction-rate + avg-lymphs-per-color - redlymphs
-     [
-       set redlymphs redlymphs + 1
-       hatch 1 [ rt random-float 360 fd 1]
-      ]
+     hatch 1 [ rt random-float 360 fd 1]
   ]
-  if color = blue
-  [
-     if random 100 < reproduction-rate + avg-lymphs-per-color - bluelymphs
-     [
-       set bluelymphs bluelymphs + 1
-       hatch 1 [ rt random-float 360 fd 1]
-      ]
-   ]
-   if color = yellow
-   [
-      if random 100  < reproduction-rate + avg-lymphs-per-color - yellowlymphs
-      [
-        set yellowlymphs yellowlymphs + 1
-        hatch 1
-        [
-        set color yellow
-          ifelse active = 1 and random 4 < 1 ; if the yellow lymphocyte is active, determine if it creates an active or inactive lymphocyte
-            [
-               set shape "bold-circle"
-               set size 2
-               set active 1
-               set reproduction-rate 35
-            ]
-            [
-              set shape "circle"
-              set size 1.5
-              set active 0
-              set reproduction-rate 10
-            ]
-        rt random-float 360 fd 1
-        ]
-      ]
-   ]
 end
 
-to antibody-move
+to antibody-move  ; the distance moved ends up being a measure of potency of each activated cell, should we make adjustable?
   fd 1
   kill-antigen  ; check to see if it is on the same spot as an antigen and if so, kill it
-  fd 1
-  kill-antigen
   fd 1
   kill-antigen
   fd 1
@@ -204,7 +174,7 @@ to antibody-death
 end
 
 to antigen-reproduce
-    if random 100 < 5
+   if random 100 < 5
     [
       hatch 1 [ rt random 360 fd 1]
     ]
@@ -280,8 +250,8 @@ NIL
 PLOT
 9
 55
-330
-205
+332
+217
 Lymphocyte populations
 time
 pop.
@@ -290,13 +260,23 @@ pop.
 0.0
 100.0
 true
-true
+false
 "" ""
 PENS
-"lymphocytes" 1.0 0 -6917194 true "" "plot count lymphocytes"
-"red" 1.0 0 -2674135 true "" "plot redlymphs"
-"blue" 1.0 0 -13345367 true "" "plot bluelymphs"
-"yellow" 1.0 0 -1184463 true "" "plot yellowlymphs"
+"pen5" 1.0 0 -7500403 true "" "plot count lymphocytes with [color = 5]"
+"pen-1" 1.0 0 -2674135 true "" "plot count lymphocytes with [color = 15]"
+"pen-2" 1.0 0 -955883 true "" "plot count lymphocytes with [color = 25]"
+"pen-3" 1.0 0 -6459832 true "" "plot count lymphocytes with [color = 35]"
+"pen-4" 1.0 0 -1184463 true "" "plot count lymphocytes with [color = 45]"
+"pen-5" 1.0 0 -10899396 true "" "plot count lymphocytes with [color = 55]"
+"pen-6" 1.0 0 -13840069 true "" "plot count lymphocytes with [color = 65]"
+"pen-7" 1.0 0 -14835848 true "" "plot count lymphocytes with [color = 75]"
+"pen-8" 1.0 0 -11221820 true "" "plot count lymphocytes with [color = 85]"
+"pen-9" 1.0 0 -13791810 true "" "plot count lymphocytes with [color = 95]"
+"pen-10" 1.0 0 -13345367 true "" "plot count lymphocytes with [color = 105]"
+"pen-11" 1.0 0 -8630108 true "" "plot count lymphocytes with [color = 115]"
+"pen-12" 1.0 0 -5825686 true "" "plot count lymphocytes with [color = 125]"
+"pen-13" 1.0 0 -2064490 true "" "plot count lymphocytes with [color = 135]"
 
 MONITOR
 340
@@ -318,7 +298,7 @@ number-lymphocytes
 number-lymphocytes
 50
 200
-183.0
+200.0
 1
 1
 NIL
@@ -385,7 +365,7 @@ count antigens
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model intends to show how the immune system reacts to an antigen in the body.  When an antigen appears, it activates particular lymphocytes which in turn increase their reproduction rate and start creating antigens which then kill the antigen.  The goal of this model is to increase basic understanding of how the immune system works.
+This model demonstrates how clonal selection of lymphocytes results in adaptive immunity. It is intended to be used with biology students to help them visualize clonal selection.  When an antigen appears, it activates particular lymphocytes which in turn increase their reproduction rate and start creating antigens which then kill the antigen.  The goal of this model is to increase basic understanding of how the immune system works. [[Additionally demonstrates measles virus erasing adaptive immunity]] 
 
 ## HOW IT WORKS
 
@@ -592,6 +572,18 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
+
+monster
+false
+0
+Polygon -7500403 true true 75 150 90 195 210 195 225 150 255 120 255 45 180 0 120 0 45 45 45 120
+Circle -16777216 true false 165 60 60
+Circle -16777216 true false 75 60 60
+Polygon -7500403 true true 225 150 285 195 285 285 255 300 255 210 180 165
+Polygon -7500403 true true 75 150 15 195 15 285 45 300 45 210 120 165
+Polygon -7500403 true true 210 210 225 285 195 285 165 165
+Polygon -7500403 true true 90 210 75 285 105 285 135 165
+Rectangle -7500403 true true 135 165 165 270
 
 pentagon
 false
