@@ -1,4 +1,4 @@
-globals [coloring avg-lymphs-per-color death-rate]
+globals [coloring avg-lymphs-per-color death-rate antibody-movement]
 ; bluelymphs = number of lymphocytes that are blue
 ; redlymphs = number of lymphocytes that are red
 ; yellowlymphs = number of lymphocytes that are yellow
@@ -60,6 +60,7 @@ to go
     set energy energy - 1
     antibody-death
   ]
+  cap
   tick
  end
 
@@ -156,15 +157,14 @@ to reproduce  ; determine if the lymphocyte reproduces
   ]
 end
 
-to antibody-move  ; the distance moved ends up being a measure of potency of each activated cell, should we make adjustable?
-  fd 1
+
+to antibody-move  ; the speed (distance moved each time step) ends up being a measure of potency of each activated cell
+  set antibody-movement 0
+  while [antibody-movement < antibody-speed]
+  [fd 1
   kill-antigen  ; check to see if it is on the same spot as an antigen and if so, kill it
-  fd 1
-  kill-antigen
-  fd 1
-  kill-antigen
-  fd 1
-  kill-antigen
+  set antibody-movement antibody-movement + 1
+  ]
 end
 
 to antibody-death
@@ -184,12 +184,17 @@ to kill-antigen
   if prey != nobody
   [ask prey[die]]
 end
+
+to cap
+  while [(count lymphocytes) > (number-lymphocytes + (number-lymphocytes / 4))]
+  [ ask one-of lymphocytes [die]]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-483
-10
-950
-478
+696
+14
+1163
+482
 -1
 -1
 9.0
@@ -213,9 +218,9 @@ ticks
 30.0
 
 BUTTON
-9
+288
 10
-78
+357
 43
 setup
 setup
@@ -230,11 +235,11 @@ NIL
 1
 
 BUTTON
-91
-10
-158
-43
-go
+385
+11
+465
+44
+go/pause
 go
 T
 1
@@ -247,10 +252,10 @@ NIL
 0
 
 PLOT
-9
-55
-332
-217
+222
+59
+545
+221
 Lymphocyte populations
 time
 pop.
@@ -278,10 +283,10 @@ PENS
 "pen-13" 1.0 0 -2064490 true "" "plot count lymphocytes with [color = 135]"
 
 MONITOR
-340
-57
-432
-102
+553
+61
+645
+106
 lymphocytes
 count lymphocytes
 3
@@ -289,25 +294,25 @@ count lymphocytes
 11
 
 SLIDER
-169
-11
-356
-44
+16
+14
+203
+47
 number-lymphocytes
 number-lymphocytes
 50
-200
-200.0
+500
+403.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-12
-218
-332
-350
+225
+222
+545
+354
 Antibody Population
 time
 pop.
@@ -322,10 +327,10 @@ PENS
 "antibodies" 1.0 0 -16777216 true "" "plot count antibodies"
 
 PLOT
-14
-363
-333
-496
+227
+367
+546
+500
 Antigen Population
 time
 pop.
@@ -340,10 +345,10 @@ PENS
 "antigens" 1.0 0 -16777216 true "" "plot count antigens"
 
 MONITOR
-340
-219
-418
-264
+553
+223
+631
+268
 antibodies
 count antibodies
 17
@@ -351,15 +356,45 @@ count antibodies
 11
 
 MONITOR
-339
-363
-418
-408
+552
+367
+631
+412
 antigens
 count antigens
 17
 1
 11
+
+SLIDER
+27
+100
+199
+133
+antibody-speed
+antibody-speed
+2
+15
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+25
+148
+197
+181
+antibody-life
+antibody-life
+5
+15
+8.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
