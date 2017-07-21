@@ -8,8 +8,10 @@ globals [coloring avg-lymphs-per-color death-rate antibody-movement]
 breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
 breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
+breed [measles measle]          ; creating special measles antigen
 lymphocytes-own [active active-time reproduction-rate]
 antibodies-own [energy]
+measles-own [measles-duration]
 
 to setup
   clear-all
@@ -25,6 +27,7 @@ to setup
   set death-rate 10
   set-default-shape lymphocytes "circle"  ; lymphocytes are circles
   set-default-shape antigens "monster"       ; antigens are monsters
+  set-default-shape measles "monster"       ; measles are monsters, big red ones
   set-default-shape antibodies "Y"        ; antibodies are Y-shaped
   create-lymphocytes number-lymphocytes  ; create the lymphocytes, then initialize their variables
   [
@@ -60,6 +63,7 @@ to go
     set energy energy - 1
     antibody-death
   ]
+  measles-death
   cap
   tick
  end
@@ -188,6 +192,39 @@ end
 to cap
   while [(count lymphocytes) > (number-lymphocytes + (number-lymphocytes / 4))]
   [ ask one-of lymphocytes [die]]
+end
+
+to infect-measles
+  output-type "measles infection time "  output-print ticks
+   create-measles 1
+    [
+     set color red
+     set size 50
+     set label-color blue - 2
+     setxy 0 0
+     set measles-duration 5
+    ]
+
+  ask lymphocytes
+      [
+        if random 100 < 95      ; keep the death rate constant for now and we can tweak reproductive rates
+        [
+        die
+        ]
+
+    ]
+
+end
+
+to measles-death
+  ask measles
+  [
+    if measles-duration < 1
+     [
+          die
+      ]
+     set measles-duration measles-duration - 1
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -367,10 +404,10 @@ count antigens
 11
 
 SLIDER
-27
-100
-199
-133
+23
+71
+195
+104
 antibody-speed
 antibody-speed
 2
@@ -382,10 +419,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-25
-148
-197
-181
+21
+119
+193
+152
 antibody-life
 antibody-life
 5
@@ -395,6 +432,30 @@ antibody-life
 1
 NIL
 HORIZONTAL
+
+BUTTON
+60
+307
+146
+340
+MEASLES
+infect-measles
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+5
+367
+227
+500
+13
 
 @#$#@#$#@
 ## WHAT IS IT?
