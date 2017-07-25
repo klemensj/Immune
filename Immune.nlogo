@@ -1,8 +1,5 @@
-globals [coloring avg-lymphs-per-color death-rate antibody-movement]
-; bluelymphs = number of lymphocytes that are blue
-; redlymphs = number of lymphocytes that are red
-; yellowlymphs = number of lymphocytes that are yellow
-; coloring = variable to randomly generate color of each lymphocyte
+globals [avg-lymphs-per-color death-rate antibody-movement regular-reproduction infected]
+;
 ; avg-lymphs-per-color = number of lymphocytes of each color on average
 
 breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
@@ -10,21 +7,20 @@ breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
 breed [measles measle]          ; creating special measles antigen
 lymphocytes-own [active active-time reproduction-rate]
+     ; active = whether the cell is active ( 0 is no ; 1 is yes )
+     ; active-time = how much time left the cell has to be active
+     ; reproduction-rate = how fast the cell reproduces
 antibodies-own [energy]
+     ; energy = how many ticks the antibody has left to live
 measles-own [measles-duration]
 
 to setup
   clear-all
   ask patches [ set pcolor white]
-
-  ; removed the separate variables for diff color lymphocytes
-  ; we can ask to count lymphocytes by color at any point
-  ; coding will get really awkward as we add more colors
-
-
-
 ;  set avg-lymphs-per-color number-lymphocytes / 3
+  set infected 0 ; at setup, the cell is not infected with any antigens
   set death-rate 10
+  set regular-reproduction 10
   set-default-shape lymphocytes "circle"  ; lymphocytes are circles
   set-default-shape antigens "monster"       ; antigens are monsters
   set-default-shape measles "monster"       ; measles are monsters, big red ones
@@ -35,7 +31,7 @@ to setup
                                          ; numbers between 0 and 140 that end in "5"
 
     set active 0 ; all lymphocytes are initially inactive
-    set reproduction-rate 10
+    set reproduction-rate regular-reproduction ; all lymphocytes are initially inactive, so reproduce at inactive rate
     set size 1.5  ; easier to see
     set label-color blue - 2
     setxy random-xcor random-ycor
@@ -46,7 +42,6 @@ end
 to go
   if not any? turtles [ stop ]
   replace-extinct                   ; this new function lets us simplify reproduction, it's just a rescue effect
-  make-antigen
   ask antigens[
     move
     antigen-reproduce
@@ -65,6 +60,7 @@ to go
   ]
   measles-death
   cap
+  antigen-extinct
   tick
  end
 
@@ -78,7 +74,7 @@ to replace-extinct     ; this is a "rescue effect", if any lymphocyte types go e
       [
         set color counter
         set active 0
-        set reproduction-rate 10
+        set reproduction-rate regular-reproduction
         set size 1.5  ; easier to see
         set label-color blue - 2
         setxy random-xcor random-ycor
@@ -89,17 +85,17 @@ to replace-extinct     ; this is a "rescue effect", if any lymphocyte types go e
 
 end
 
-to make-antigen                               ; create an infection every 100 ticks of the clock
-  if (ticks > 1) and (ticks mod 100 = 0)
-  [
-    create-antigens 5
+to insert-antigens                               ; create an infection every button push
+  output-type "antigen infection time "  output-print ticks
+  set infected 1 ; noting that antigens have been put into the cell
+    create-antigens antigen-load
     [
      set color black
      set size 2  ; easier to see
      set label-color blue - 2
      setxy random-xcor random-ycor
     ]
-  ]
+
 end
 
 to bind                                          ; yellow lymphocytes are activated by the antigen
@@ -125,13 +121,13 @@ to activated                                         ; we aren't quite right wit
   if active-time < 1                                 ; turns activated back into regular when times up
     [
       set active 0
-      set reproduction-rate 10   ; return reproductive rate to normal
+      set reproduction-rate regular-reproduction   ; return reproductive rate to normal
       set size 1.5               ; return size to normal
       set shape "circle"         ; return shape to normal
   ]
   if active = 1
   [
-    set reproduction-rate 25 ; start rapid reproduction
+    set reproduction-rate activated-reproduction ; start rapid reproduction
     set size 2               ; increase size
     set shape "bold-circle"  ; outline circle
     hatch-antibodies 5       ; create antibodies
@@ -177,7 +173,7 @@ to antibody-death
 end
 
 to antigen-reproduce
-   if random 100 < 5
+   if random 100 < antigen-reproduction
     [
       hatch 1 [ rt random 360 fd 1]
     ]
@@ -226,6 +222,14 @@ to measles-death
      set measles-duration measles-duration - 1
   ]
 end
+
+to antigen-extinct
+  if (count antigens = 0) and (infected = 1)
+  [
+     output-type "antigens cleared at time "  output-print ticks
+    set infected 0
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 696
@@ -255,9 +259,9 @@ ticks
 30.0
 
 BUTTON
-288
+11
 10
-357
+80
 43
 setup
 setup
@@ -272,9 +276,9 @@ NIL
 1
 
 BUTTON
-385
+101
 11
-465
+181
 44
 go/pause
 go
@@ -289,10 +293,10 @@ NIL
 0
 
 PLOT
-222
-59
-545
-221
+364
+17
+687
+179
 Lymphocyte populations
 time
 pop.
@@ -320,10 +324,10 @@ PENS
 "pen-13" 1.0 0 -2064490 true "" "plot count lymphocytes with [color = 135]"
 
 MONITOR
-553
-61
-645
-106
+268
+65
+360
+110
 lymphocytes
 count lymphocytes
 3
@@ -331,10 +335,10 @@ count lymphocytes
 11
 
 SLIDER
-16
-14
-203
-47
+5
+54
+192
+87
 number-lymphocytes
 number-lymphocytes
 50
@@ -346,10 +350,10 @@ NIL
 HORIZONTAL
 
 PLOT
-225
-222
-545
-354
+365
+183
+687
+315
 Antibody Population
 time
 pop.
@@ -358,16 +362,16 @@ pop.
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
 "antibodies" 1.0 0 -16777216 true "" "plot count antibodies"
 
 PLOT
-227
-367
-546
-500
+366
+320
+688
+453
 Antigen Population
 time
 pop.
@@ -376,16 +380,16 @@ pop.
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
 "antigens" 1.0 0 -16777216 true "" "plot count antigens"
 
 MONITOR
-553
-223
-631
-268
+279
+185
+357
+230
 antibodies
 count antibodies
 17
@@ -393,10 +397,10 @@ count antibodies
 11
 
 MONITOR
-552
-367
-631
-412
+279
+320
+358
+365
 antigens
 count antigens
 17
@@ -404,40 +408,40 @@ count antigens
 11
 
 SLIDER
-23
-71
-195
-104
+11
+102
+183
+135
 antibody-speed
 antibody-speed
 2
 15
-8.0
+12.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-21
-119
-193
-152
+12
+149
+184
+182
 antibody-life
 antibody-life
 5
 15
-8.0
+13.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-60
-307
-146
-340
+13
+323
+99
+356
 MEASLES
 infect-measles
 NIL
@@ -451,11 +455,73 @@ NIL
 1
 
 OUTPUT
-5
-367
-227
-500
+14
+365
+236
+498
 13
+
+SLIDER
+11
+193
+184
+226
+antigen-load
+antigen-load
+1
+10
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+279
+312
+312
+activated-reproduction
+activated-reproduction
+1
+3
+2.0
+.5
+1
+regular-reproduction
+HORIZONTAL
+
+SLIDER
+12
+238
+185
+271
+antigen-reproduction
+antigen-reproduction
+1
+10
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+203
+11
+329
+44
+Insert Antigens
+insert-antigens
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
