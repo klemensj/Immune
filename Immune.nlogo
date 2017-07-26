@@ -6,6 +6,7 @@ breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
 breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
 breed [measles measle]          ; creating special measles antigen
+breed [vaccines vaccine]        ; creating special vaccine antigen
 lymphocytes-own [active active-time reproduction-rate]
      ; active = whether the cell is active ( 0 is no ; 1 is yes )
      ; active-time = how much time left the cell has to be active
@@ -13,6 +14,7 @@ lymphocytes-own [active active-time reproduction-rate]
 antibodies-own [energy]
      ; energy = how many ticks the antibody has left to live
 measles-own [measles-duration]
+vaccines-own [vaccine-duration]
 
 to setup
   clear-all
@@ -24,6 +26,7 @@ to setup
   set-default-shape lymphocytes "circle"  ; lymphocytes are circles
   set-default-shape antigens "monster"       ; antigens are monsters
   set-default-shape measles "monster"       ; measles are monsters, big red ones
+  set-default-shape vaccines "monster"       ; measles are monsters, big red ones
   set-default-shape antibodies "Y"        ; antibodies are Y-shaped
   create-lymphocytes number-lymphocytes  ; create the lymphocytes, then initialize their variables
   [
@@ -59,7 +62,8 @@ to go
     antibody-death
   ]
   measles-death
-  cap
+  vaccine-death
+;  cap
   antigen-extinct
   tick
  end
@@ -98,9 +102,21 @@ to insert-antigens                               ; create an infection every but
 
 end
 
+to insert-vaccine
+  output-type "vaccine injection time "  output-print ticks
+  create-vaccines vaccine-load
+    [
+     set color grey
+     set size 2  ; easier to see
+     set label-color blue - 2
+     setxy random-xcor random-ycor
+     set vaccine-duration 10
+    ]
+end
+
 to bind                                          ; yellow lymphocytes are activated by the antigen
  if color = yellow[
-   if one-of antigens-here != nobody
+   if (one-of antigens in-radius 1 != nobody) or (one-of vaccines in-radius 1 != nobody)
    [
      set active 1
      set active-time 10   ;; length of typical cell lifespan if death rate is 10
@@ -143,7 +159,7 @@ end
 
 to lymph-death  ; determine if the lymphocyte dies
 
-      if random 100 < death-rate      ; keep the death rate constant for now and we can tweak reproductive rates
+      if random 100 < death-rate  and active = 0    ; keep the death rate constant for now and we can tweak reproductive rates
       [
         die
       ]
@@ -173,7 +189,7 @@ to antibody-death
 end
 
 to antigen-reproduce
-   if random 100 < antigen-reproduction
+   if random 100 < antigen-reproduction and color != grey   ;; and statement keeps grey "vaccine antigens" from reproducing
     [
       hatch 1 [ rt random 360 fd 1]
     ]
@@ -204,11 +220,8 @@ to infect-measles
   ask lymphocytes
       [
         if random 100 < 95      ; keep the death rate constant for now and we can tweak reproductive rates
-        [
-        die
-        ]
-
-    ]
+        [ die ]
+      ]
 
 end
 
@@ -216,29 +229,36 @@ to measles-death
   ask measles
   [
     if measles-duration < 1
-     [
-          die
-      ]
+     [  die  ]
      set measles-duration measles-duration - 1
+  ]
+end
+
+to vaccine-death
+  ask vaccines
+  [
+    move
+    if vaccine-duration < 1 [die]
+    set vaccine-duration vaccine-duration - 1
   ]
 end
 
 to antigen-extinct
   if (count antigens = 0) and (infected = 1)
   [
-     output-type "antigens cleared at time "  output-print ticks
+     output-type "antigen clearance time "  output-print ticks
     set infected 0
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-696
-14
-1163
-482
+613
+10
+1101
+499
 -1
 -1
-9.0
+9.412
 1
 14
 1
@@ -293,10 +313,10 @@ NIL
 0
 
 PLOT
-364
-17
-687
-179
+288
+10
+611
+172
 Lymphocyte populations
 time
 pop.
@@ -323,17 +343,6 @@ PENS
 "pen-12" 1.0 0 -5825686 true "" "plot count lymphocytes with [color = 125]"
 "pen-13" 1.0 0 -2064490 true "" "plot count lymphocytes with [color = 135]"
 
-MONITOR
-268
-65
-360
-110
-lymphocytes
-count lymphocytes
-3
-1
-11
-
 SLIDER
 5
 54
@@ -350,10 +359,10 @@ NIL
 HORIZONTAL
 
 PLOT
-365
-183
-687
-315
+289
+176
+612
+335
 Antibody Population
 time
 pop.
@@ -368,10 +377,10 @@ PENS
 "antibodies" 1.0 0 -16777216 true "" "plot count antibodies"
 
 PLOT
-366
-320
-688
-453
+286
+342
+610
+500
 Antigen Population
 time
 pop.
@@ -385,28 +394,6 @@ false
 PENS
 "antigens" 1.0 0 -16777216 true "" "plot count antigens"
 
-MONITOR
-279
-185
-357
-230
-antibodies
-count antibodies
-17
-1
-11
-
-MONITOR
-279
-320
-358
-365
-antigens
-count antigens
-17
-1
-11
-
 SLIDER
 11
 102
@@ -416,7 +403,7 @@ antibody-speed
 antibody-speed
 2
 15
-12.0
+4.0
 1
 1
 NIL
@@ -431,17 +418,17 @@ antibody-life
 antibody-life
 5
 15
-13.0
+6.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-13
-323
-99
-356
+95
+318
+179
+358
 MEASLES
 infect-measles
 NIL
@@ -457,7 +444,7 @@ NIL
 OUTPUT
 14
 365
-236
+279
 498
 13
 
@@ -468,10 +455,10 @@ SLIDER
 226
 antigen-load
 antigen-load
-1
-10
-3.0
-1
+5
+25
+25.0
+5
 1
 NIL
 HORIZONTAL
@@ -479,13 +466,13 @@ HORIZONTAL
 SLIDER
 7
 279
-312
+187
 312
 activated-reproduction
 activated-reproduction
 1
-3
-2.0
+10
+10.0
 .5
 1
 regular-reproduction
@@ -500,19 +487,51 @@ antigen-reproduction
 antigen-reproduction
 1
 10
-2.0
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-203
-11
-329
-44
-Insert Antigens
+15
+318
+94
+358
+ANTIGENS
 insert-antigens
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+213
+144
+250
+294
+vaccine-load
+vaccine-load
+50
+500
+500.0
+50
+1
+NIL
+VERTICAL
+
+BUTTON
+180
+318
+267
+358
+VACCINE
+insert-vaccine
 NIL
 1
 T
