@@ -18,6 +18,7 @@ vaccines-own [vaccine-duration]
 
 to setup
   clear-all
+  clear-output
   ask patches [ set pcolor white]
 ;  set avg-lymphs-per-color number-lymphocytes / 3
   set infected 0 ; at setup, the cell is not infected with any antigens
@@ -513,7 +514,7 @@ NIL
 SLIDER
 213
 144
-250
+246
 294
 vaccine-load
 vaccine-load
@@ -545,11 +546,64 @@ NIL
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model demonstrates how clonal selection of lymphocytes results in adaptive immunity. It is intended to be used with biology students to help them visualize clonal selection.  When an antigen appears, it activates particular lymphocytes which in turn increase their reproduction rate and start creating antigens which then kill the antigen.  The goal of this model is to increase basic understanding of how the immune system works. [[Additionally demonstrates measles virus erasing adaptive immunity]] 
+This model is designed to demonstrate the process by which adaptive immunity arises as a result of clonal selection on B-lymphocytes. The model also includes functions for simulating vaccination and the loss of adaptive immunity provoked by measles infection. It is intended to be used as an active learning activity in a college or high-school biology course.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+The model consists of five classes of agents: Lymphocytes, Antigens, Antibodies, Vaccine particles, and a Measles pathogen. 
+
+### Lymphocytes 
+
+Lympohcytes in the model represent B-lymphocytes, and are depicted by "circle" turtle shapes.
+ 
+ * The diversity of of lymphocyte colors included in the model corresponds to diversity of B-lymphocte clones within the immune system - lymphocytes with different antigen receptors.
+ * Yellow lymphocytes possess antigen receptors specific to the antigen
+ * Lymphocytes move randomly around the world
+ * Lymphocytes have equal birth and death rates. Birth and death are calculated probabastically for each lymphocyte at each time step, such that the population of each clone will exhibit stochastic variation (a random walk)
+ * There is a "rescue effect" in place for each lymphocyte clone, so if one color goes extinct two more lymphocytes of that color will be added to the world
+
+### Antigens 
+
+Antigens are any foreign body that causes an immune response, in this model they are assumed to be pathogenic organisms or viruses that are capable of reproducing. They are depicted by black "monster" turtle shapes. 
+
+ *  Antigens are introduced by the antigen button, which will introduce the number specified by the antigen-load slider
+ * Lymphocytes move randomly around the world
+ * Antigens reproduce probabalistically each time step
+ * Antigens only die when they come into contact with an antibody
+
+### Antigen-Lymphocyte interactions
+
+When an antigen and a yellow lymphocyte occupy the same or adjacent patches in the model the lymphocyte becomes activated. Activated lympohcytes are depicted by the custom "bold-circle" turtle shape, which is the same as a lymphocyte but with a bold black outline.  Activated lymphocytes increase their reproduction rate by a factor determined by the user.
+
+![Blymphocyte developmental stages lymphocytes](file:///Users/klemensj/Dropbox/Projects/Immune%20system%20model/Images/Lymphocytes.png)
+
+In the immune system, activated lymphocytes then further develop into two types of cells. Memory lymphocytes are depicted with the custom "m-circle" turtle shape, which is the same as lympocyte but bearing the letter "M". Memory lymphocytes are long-lived cells, and in the model their birth and death rates are set to an order of magnitude lower than those of typical lymphocytes. 
+
+The other cell type is the plasma cell (the effector cell of the B-lympohcyte). The logic of the model does not distinguish between plasma cells and activated lymphocytes. The short-lived plasma cells produce antibodies for the duration of their activiation, and then die.     
+
+### Antibodies
+
+Antibodies are produced by activated lymphocytes. 
+
+ * Lymphocytes move in a straight line in a random direction away from the activated lympohcyte
+ * Antibodies live for a fixed time and then die
+ * If an antibody and an antigen occupy the same space patch at any time, the antigen dies
+ * Antibodies effectiveness can be adjusted with the "XXX" switch. In the high setting, antibodies travel "XXX" patches each time step and live for "XXX" timesteps, while in the low setting, antibodies travel "XXX" patches each time step and live for "XXX" timesteps.
+
+### Vaccines
+
+Vaccines function by stimulating a secondary immune response, often using killed or inactivated viral particles. Vaccine particles are depicted by grey "monster" turtle shapes. Pushing the vaccine button introduces a number of vaccine particles determined by the "vaccine load" slider. 
+
+ * Vaccine particles do not reproduce
+ * Vaccine particles persist for "XXX" time steps and then die
+ * Antibodies have no effect on vaccine particles
+ * Vaccine particles do not count towards the values shown in the antigen plot
+ * Lymphocytes respond to the vaccine particles in the same way as they respond to an antigen, producing activated lymphocytes, memory cells, and pathogens
+
+### Measles
+
+To be written - Measles induced immunosupression demonstration.
+
 
 ## HOW TO USE IT
 
@@ -557,29 +611,55 @@ This model demonstrates how clonal selection of lymphocytes results in adaptive 
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+Your textbook probably demonstrates secondary immunity with something that looks like this:
+
+![Antibody production in primary and secondary response](file:///Users/klemensj/Dropbox/Projects/Immune%20system%20model/Images/Antibody_curve.png)
+
+Make sure to pay attention to the Y axis, which is variable on the antigen graphs when comparing model runs. 
+
+The timing of certain events (infection, vaccination, measles) are recorded in the output area of the model. 
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+(suggested things for the user to try to do (move sliders, switches, etc.) with the  Mention here and link detailed asignment once written.  model)
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+A curve smoothing function for the plots might help students compare the graphs generated with conceptual versions presented in textbooks. 
 
-## NETLOGO FEATURES
+The model does not include the distinction between IgG and IgM antibodies, which could easily be modelled in Netlogo. This was intentional to keep the model focused on the process of clonal selection. 
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+In the immune system the dynamics of memory cell generation depend on activated cells forming "germinal centers" that produce XXX
 
-## RELATED MODELS
+A more spatially explicit and accurate view of the immune system would distinguish between dynamics in secondary "  XXX " such as lymph nodes, where lymphocytes XXX and the fact that antibody antigen interactoins released into the blood and lymph. 
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+
 
 ## CREDITS AND REFERENCES
 
-Created by Sarah Gift with help from Jeff Klemens
+Thanks to Diana Cundell for reviewing the model. Madeline Conway helped generate the figures included in this Info document. 
 
-2017
+### References
+
+
+
+## HOW TO CITE
+
+Adaptive Immunity 1.0 Created by Sarah Gift and Jeffrey A. Klemens
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Gift, S. and J.A. Klemens. (2017). Netlogo Adaptive Immunity Model 1.0. <<url>>. 
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+XXX is there value to a creative commons license here?
 @#$#@#$#@
 default
 true
