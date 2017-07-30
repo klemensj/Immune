@@ -21,7 +21,7 @@ to setup
   clear-all
   clear-output
   ask patches [ set pcolor white]
-  set infected 0 ; at setup, the cell is not infected with any antigens
+  set infected 0 ; at setup, the system is not infected with any antigens
   set death-rate 10
   set reg-repro 10
   set-default-shape lymphocytes "circle"     ; lymphocytes are circles
@@ -34,7 +34,7 @@ to setup
     set color one-of base-colors
     set active 0 ; all lymphocytes are initially inactive
     set active-time -1
-    set reproduction-rate reg-repro ; all lymphocytes are initially inactive, so reproduce at inactive rate
+    set reproduction-rate reg-repro ; all lymphocytes are initially inactive, so reproduce at regular rate
     set size 1.5  ; easier to see
     set label-color blue - 2
     setxy random-xcor random-ycor
@@ -113,17 +113,18 @@ to bind                                          ; yellow lymphocytes are activa
 end
 
 to activated
-  if active-time = 0                                 ; turns activated then into memory when times up
+  if active-time = 0                                 ; turns activated then into memory when time is up
     [
-           set active 0
-           set reproduction-rate 2   ; return reproductive rate to normal
-           set size 2.5               ; return size to normal
-           set shape "m-circle"         ; return shape to normal
+
+          set active 0
+          set reproduction-rate 2   ; set memory cell reproduction rate
+          set size 2.5               ; return size to normal
+          set shape "m-circle"         ; set shape to memory cell
       ]
 
   if active = 1
   [
-    set reproduction-rate activated-reproduction ; start rapid reproduction
+    set reproduction-rate (reproduction-multiplier-when-active * reg-repro) ; start rapid reproduction
     set size 2               ; increase size
     set shape "bold-circle"  ; outline circle
     hatch-antibodies 5       ; create antibodies
@@ -180,7 +181,7 @@ to reproduce  ; determine if the lymphocyte reproduces
 end
 
 to lymph-death  ; determine if the lymphocyte dies
-  if memory = 0 and random 100 < death-rate  and active = 0
+  if memory = 0 and random 100 < death-rate  ; and active = 0
       [
         die
       ]
@@ -322,7 +323,7 @@ ticks
 BUTTON
 11
 10
-80
+88
 43
 setup
 setup
@@ -337,10 +338,10 @@ NIL
 1
 
 BUTTON
-101
-11
-181
-44
+90
+10
+170
+43
 go/pause
 go
 T
@@ -421,9 +422,9 @@ PENS
 "antigens" 1.0 0 -16777216 true "" "plot count antigens"
 
 BUTTON
-91
+181
 231
-175
+265
 271
 MEASLES
 infect-measles
@@ -447,7 +448,7 @@ OUTPUT
 SLIDER
 10
 113
-178
+265
 146
 antigen-load
 antigen-load
@@ -461,17 +462,17 @@ HORIZONTAL
 
 SLIDER
 11
-193
-262
-226
-activated-reproduction
-activated-reproduction
+192
+266
+225
+reproduction-multiplier-when-active
+reproduction-multiplier-when-active
 1
-10
-3.5
+5
+3.0
 .5
 1
-reg-repro
+NIL
 HORIZONTAL
 
 BUTTON
@@ -494,22 +495,22 @@ NIL
 SLIDER
 11
 153
-183
+266
 186
 vaccine-load
 vaccine-load
 50
 500
-450.0
+200.0
 50
 1
 NIL
 HORIZONTAL
 
 BUTTON
-176
+92
 231
-263
+179
 271
 VACCINE
 insert-vaccine
@@ -531,7 +532,7 @@ CHOOSER
 antibody-effectiveness
 antibody-effectiveness
 "low" "high"
-1
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
