@@ -439,10 +439,10 @@ NIL
 1
 
 OUTPUT
-10
-278
-263
-411
+11
+299
+264
+432
 13
 
 SLIDER
@@ -534,6 +534,16 @@ antibody-effectiveness
 "low" "high"
 0
 
+TEXTBOX
+11
+284
+161
+302
+Output Window:
+12
+0.0
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -598,7 +608,38 @@ To be written - Measles induced immunosupression demonstration.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+### The "setup" and <b>"go/pause"</b> buttons 
+
+<b>setup</b> clears all data and start a new simulation. Setup will create a population of 500 lymphocytes representing 14 different <i>clones</i> - or lymphocytes that have the same antigen receptors. <b>go/pause</b> will begin the simulation. Without any other input, each lymphocyte population will undergo a random walk that will be different each time you run the model. Pressing the <b>go/pause</b> button during the simulation will pause the simulation. Other buttons are active at this time, so the user could, for example, pause the simulation, press the <b>VACCINES</b> button, and then restart the simulation from that point with the vaccine particles now introduced. 
+
+### antibody-effectiveness  
+
+A swith that controls how effective antibodies are at clearing infections. In the <b>low</b> position antibodies move 3 spaces per round, and last for 4 rounds before dying. In the <b>high</b> position, antibodies move 10 spaces per round and last for 8 rounds. You should start with antibody-effectiveness it in the low position.
+
+### antigen-load
+
+A slider that determines the number of antigens that are added to the system each time the <b>ANTIGENS</b> button is pressed.
+
+### vaccine-load
+
+A slider that determines the number of vaccine particles are added to the system each time the <b>VACCINE</b> button is pressed.
+
+### reproduction-multiplier-when-active
+
+Lymphocytes have a default 10% probability of reproducing or dying at any time step. When activated, the reproductive rate (but not the death rate) will be increased by a factor determined by this slider. 
+Example: when this slider is set to 3.0, the reproductive rate will triple.
+
+### ANTIGENS button
+
+Pressing the <b>ANTIGENS</b> button at any point during the simulation introduces antigens to the system. The time at which the antigen infection occurs will be recorded in the <b>Output Window</b>. When the population of antigens has been reduced to 0 by the antibodies, the time will be recorded as the "clearance time" in the  <b>Output Window</b>.
+
+### VACCINE button
+
+Pressing the <b>VACCINE</b> button at any point during the simulation will introduce the vaccine particles to the system. The time at which the vaccine is introduced will be recorded in the <b>Output Window</b>. Pressing the vaccine button when there is already a very large population of memory cells may lead to slow run times due to the very large number of antibodies that are likely to be generated. 
+
+### MEASLES button
+
+Pressing the <b>MEASLES</b> button will introduce a measles infection, which will cause 95% of the lympocytes in the simulation, selected randomly across all clones, to die immediately. A large red measles monster will appear for 5 time steps once the measles button is pressed; this turtle does not interact with any of the other agents in the simulation. The time at which the measles infection is introduced will be recorded in the <b>Output Window</b>
 
 ## THINGS TO NOTICE
 
