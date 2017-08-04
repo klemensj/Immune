@@ -673,6 +673,14 @@ Thanks to Diana Cundell for reviewing the model. Madeline Conway helped generate
 
 ### References
 
+(Mina, Metcalf, Swart, Osterhaus, & Grenfell, 2015)
+
+Doucleff, M. (2015, May 7). Scientists Crack A 50-Year-Old Mystery About The Measles Vaccine. Retrieved August 3, 2017, from http://www.npr.org/sections/goatsandsoda/2015/05/07/404963436/scientists-crack-a-50-year-old-mystery-about-the-measles-vaccine
+
+Mina, M. J., Metcalf, C. J. E., Swart, R. L. de, Osterhaus, A. D. M. E., & Grenfell, B. T. (2015). Long-term measles-induced immunomodulation increases overall childhood infectious disease mortality. Science, 348(6235), 694–699. https://doi.org/10.1126/science.aaa3662
+
+
+
 
 
 ## HOW TO CITE
