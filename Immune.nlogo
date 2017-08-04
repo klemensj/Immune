@@ -113,13 +113,9 @@ to bind                                          ; yellow lymphocytes are activa
 end
 
 to activated
-  if active-time = 0                                 ; turns activated then into memory when time is up
+  if active-time = 0                                 ; kills activated after time is up
     [
-
-          set active 0
-          set reproduction-rate 2   ; set memory cell reproduction rate
-          set size 2.5               ; return size to normal
-          set shape "m-circle"         ; set shape to memory cell
+       die
       ]
 
   if active = 1
@@ -155,10 +151,8 @@ to reproduce  ; determine if the lymphocyte reproduces
         rt random-float 360 fd 1]
     ]
     [
-       ifelse active = 1 ; if active, half the time produce memory cell, half the time produce active cell ; else, produce regular cell
+       ifelse active = 1 ; if active, produce both a memory cell and an active cell ; else, produce regular cell
         [
-             ifelse random 100 < 50
-               [
                   hatch-lymphocytes 1 [ set shape "M-circle"
                   set color yellow
                   set active 0
@@ -166,12 +160,9 @@ to reproduce  ; determine if the lymphocyte reproduces
                   set size 2.5  ; easier to see
                   set label-color blue - 2
                   set memory 1
-                  rt random-float 360 fd 1
-                  ]
-               ]
-              [
+                  rt random-float 360 fd 1 ]
+
                   hatch 1 [ rt random-float 360 fd 1]
-               ]
         ]
         [
             hatch 1 [ rt random-float 360 fd 1]
@@ -454,7 +445,7 @@ antigen-load
 antigen-load
 5
 25
-15.0
+25.0
 5
 1
 NIL
@@ -468,7 +459,7 @@ SLIDER
 reproduction-multiplier-when-active
 reproduction-multiplier-when-active
 1
-5
+4
 3.0
 .5
 1
@@ -500,9 +491,9 @@ SLIDER
 vaccine-load
 vaccine-load
 50
-500
-200.0
-50
+170
+170.0
+15
 1
 NIL
 HORIZONTAL
