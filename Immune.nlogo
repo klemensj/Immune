@@ -1,8 +1,9 @@
-globals [avg-lymphs-per-color death-rate antibody-movement reg-repro infected]
+globals [death-rate reg-repro antibody-movement infected active-color]
      ; death-rate = chance of the turtle dying
      ; antibody-movement = how many spaces the antibody has moved
      ; reg-repro = the chance a lymphocyte will reproduce when it is not active or a memory cell
      ; infected = records whether antigens have been inputted
+     ; the color of the lymphocyte that responds to the antigen
 breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
 breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
@@ -21,15 +22,16 @@ to setup
   clear-all
   clear-output
   ask patches [ set pcolor white]
-  set infected 0 ; at setup, the system is not infected with any antigens
-  set death-rate 10
-  set reg-repro 10
+  set infected 0      ; at setup, the system is not infected with any antigens
+  set death-rate 15   ; values fit to give best response
+  set reg-repro 15
+  set active-color one-of base-colors        ;set active color to a random lymphocyte color
   set-default-shape lymphocytes "circle"     ; lymphocytes are circles
   set-default-shape antigens "monster"       ; antigens are monsters
   set-default-shape measles "monster"        ; measles are monsters, big red ones
   set-default-shape vaccines "monster"       ; vaccines are greyed-out monsters
   set-default-shape antibodies "Y"           ; antibodies are Y-shaped
-  create-lymphocytes 500  ; create the lymphocytes, then initialize their variables
+  create-lymphocytes 250  ; create the lymphocytes, then initialize their variables
   [
     set color one-of base-colors
     set active 0 ; all lymphocytes are initially inactive
@@ -68,21 +70,22 @@ to go
   tick
  end
 
-to replace-extinct     ; this is a "rescue effect", if any lymphocyte types go extinct we add two more to the population
+to replace-extinct           ; this is a "rescue effect", if any lymphocyte types (colors) go extinct we add one more to the population
   let counter 5
-  while [counter < 140]
+  while [counter < 140]      ; check all the colors
   [
     if count lymphocytes with [color = counter] = 0
   [
-      create-lymphocytes 2  ; create the lymphocytes, then initialize their variables
+      create-lymphocytes 1  ; create the replacement lymphocyte, then initialize its variables
       [
         set color counter
         set active-time -1
         set active 0
         set reproduction-rate reg-repro
-        set size 1.5  ; easier to see
+        set size 1.5
         set label-color blue - 2
         setxy random-xcor random-ycor
+        ask n-of 1 lymphocytes [ die ]   ; kill a random lympohcyte to make up for the replacement
       ]
   ]
   set counter counter + 10
@@ -96,14 +99,14 @@ to move  ; antigen and lymphocyte procedure
 end
 
 to antigen-reproduce
-   if random 100 < 10 and color != grey   ;; and statement keeps grey "vaccine antigens" from reproducing
+   if random 100 < 20 and color != grey   ;; and statement keeps grey "vaccine antigens" from reproducing
     [
       hatch 1 [ rt random 360 fd 1]
     ]
 end
 
-to bind                                          ; yellow lymphocytes are activated by the antigen
- if color = yellow[
+to bind                                          ; active-color lymphocytes are activated by the antigen
+ if color = active-color[
    if (one-of antigens in-radius 1 != nobody) or (one-of vaccines in-radius 1 != nobody)
    [
      set active 1
@@ -123,7 +126,7 @@ to activated
     set reproduction-rate (reproduction-multiplier-when-active * reg-repro) ; start rapid reproduction
     set size 2               ; increase size
     set shape "bold-circle"  ; outline circle
-    hatch-antibodies 5       ; create antibodies
+    hatch-antibodies 2       ; create antibodies
     [
       set color black
       rt random-float 360 fd 1  ; randomly pick a direction and move forward
@@ -154,7 +157,7 @@ to reproduce  ; determine if the lymphocyte reproduces
        ifelse active = 1 ; if active, produce both a memory cell and an active cell ; else, produce regular cell
         [
                   hatch-lymphocytes 1 [ set shape "M-circle"
-                  set color yellow
+                  set color active-color
                   set active 0
                   set reproduction-rate 2
                   set size 2.5  ; easier to see
@@ -165,7 +168,13 @@ to reproduce  ; determine if the lymphocyte reproduces
                   hatch 1 [ rt random-float 360 fd 1]
         ]
         [
-            hatch 1 [ rt random-float 360 fd 1]
+            ifelse count lymphocytes < 400
+               [
+                        hatch 2 [ rt random-float 360 fd 1]
+               ]
+                [
+                        hatch 1 [ rt random-float 360 fd 1]
+                 ]
         ]
     ]
   ]
@@ -195,7 +204,7 @@ to antibody-move  ; the speed (distance moved each time step) ends up being a me
 
   if antibody-effectiveness = "low"
   [
-     while [antibody-movement < 3]
+     while [antibody-movement < 5]
      [fd 1
      kill-antigen
      set antibody-movement antibody-movement + 1
@@ -444,8 +453,8 @@ SLIDER
 antigen-load
 antigen-load
 5
-25
-25.0
+50
+50.0
 5
 1
 NIL
@@ -458,10 +467,10 @@ SLIDER
 225
 reproduction-multiplier-when-active
 reproduction-multiplier-when-active
-1
-4
+2
+5
 3.0
-.5
+0.5
 1
 NIL
 HORIZONTAL
@@ -490,10 +499,10 @@ SLIDER
 186
 vaccine-load
 vaccine-load
-50
-170
-170.0
-15
+5
+200
+200.0
+5
 1
 NIL
 HORIZONTAL
@@ -590,7 +599,7 @@ Vaccines function by stimulating a secondary immune response, often using killed
  * Vaccine particles persist for "XXX" time steps and then die
  * Antibodies have no effect on vaccine particles
  * Vaccine particles do not count towards the values shown in the antigen plot
- * Lymphocytes respond to the vaccine particles in the same way as they respond to an antigen, producing activated lymphocytes, memory cells, and pathogens
+ * Lymphocytes respond to the vaccine particles in the same way as they respond to an antigen, producing activated lymphocytes, memory cells, and antibodies
 
 ### Measles
 
