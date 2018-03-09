@@ -1,4 +1,4 @@
-globals [death-rate reg-repro antibody-movement infected active-color]
+globals [death-rate reg-repro antibody-movement infected active-color antibody-effectiveness antigen-load vaccine-load]
      ; death-rate = chance of the turtle dying
      ; antibody-movement = how many spaces the antibody has moved
      ; reg-repro = the chance a lymphocyte will reproduce when it is not active or a memory cell
@@ -31,6 +31,13 @@ to setup
   set-default-shape measles "monster"        ; measles are monsters, big red ones
   set-default-shape vaccines "monster"       ; vaccines are greyed-out monsters
   set-default-shape antibodies "Y"           ; antibodies are Y-shaped
+
+  set antibody-effectiveness "low"     ;; for "simple" version for in class demos, reduce visual clutter
+  set antigen-load 50                  ;; for "simple" version for in class demos
+   set vaccine-load 200                ;; for "simple" version for in class demos
+
+
+
   create-lymphocytes 250  ; create the lymphocytes, then initialize their variables
   [
     set color one-of base-colors
@@ -294,9 +301,9 @@ to insert-vaccine
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-613
+786
 10
-1101
+1274
 499
 -1
 -1
@@ -321,9 +328,9 @@ ticks
 30.0
 
 BUTTON
-11
+4
 10
-88
+81
 43
 setup
 setup
@@ -338,10 +345,10 @@ NIL
 1
 
 BUTTON
-90
-10
-170
-43
+81
+51
+185
+110
 go/pause
 go
 T
@@ -355,10 +362,10 @@ NIL
 0
 
 PLOT
-273
-10
-596
-172
+281
+12
+695
+263
 Lymphocyte populations
 time
 pop.
@@ -386,10 +393,10 @@ PENS
 "pen-13" 1.0 0 -2064490 true "" "plot count lymphocytes with [color = 135]"
 
 PLOT
-273
-176
-596
-335
+280
+265
+695
+446
 Antibody Population
 time
 pop.
@@ -404,10 +411,10 @@ PENS
 "antibodies" 1.0 0 -16777216 true "" "plot count antibodies"
 
 PLOT
-273
-339
-597
-497
+280
+449
+696
+638
 Antigen Population
 time
 pop.
@@ -422,10 +429,10 @@ PENS
 "antigens" 1.0 0 -16777216 true "" "plot count antigens"
 
 BUTTON
-181
-231
-265
-271
+94
+206
+174
+246
 MEASLES
 infect-measles
 NIL
@@ -439,32 +446,17 @@ NIL
 1
 
 OUTPUT
-11
-299
-264
-432
+18
+370
+253
+565
 13
 
 SLIDER
-10
-113
-265
-146
-antigen-load
-antigen-load
-5
-50
-50.0
-5
-1
-NIL
-HORIZONTAL
-
-SLIDER
-11
-192
-266
-225
+15
+273
+255
+306
 reproduction-multiplier-when-active
 reproduction-multiplier-when-active
 2
@@ -476,10 +468,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-11
-231
-90
-271
+95
+120
+174
+160
 ANTIGENS
 insert-antigens
 NIL
@@ -492,26 +484,11 @@ NIL
 NIL
 1
 
-SLIDER
-11
-153
-266
-186
-vaccine-load
-vaccine-load
-5
-200
-200.0
-5
-1
-NIL
-HORIZONTAL
-
 BUTTON
-92
-231
-179
-271
+94
+163
+173
+203
 VACCINE
 insert-vaccine
 NIL
@@ -524,21 +501,11 @@ NIL
 NIL
 1
 
-CHOOSER
-11
-62
-177
-107
-antibody-effectiveness
-antibody-effectiveness
-"low" "high"
-0
-
 TEXTBOX
-11
-284
-161
-302
+20
+347
+170
+365
 Output Window:
 12
 0.0
