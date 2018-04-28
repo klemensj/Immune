@@ -3,7 +3,7 @@ globals [death-rate reg-repro antibody-movement infected active-color]
      ; antibody-movement = how many spaces the antibody has moved
      ; reg-repro = the chance a lymphocyte will reproduce when it is not active or a memory cell
      ; infected = records whether antigens have been inputted
-     ; the color of the lymphocyte that responds to the antigen
+     ; active-color = the color of the lymphocyte that responds to the antigen
 breed [lymphocytes lymphocyte]  ; creating a set of lymphocytes
 breed [antigens antigen]        ; creating a set of antigens
 breed [antibodies antibody]     ; creating a set of antibodies
@@ -13,17 +13,19 @@ lymphocytes-own [active active-time reproduction-rate memory]
      ; active = whether the cell is active ( 0 is no ; 1 is yes )
      ; active-time = how much time left the cell has to be active
      ; reproduction-rate = how fast the cell reproduces
+     ; memory = records whether the lymphocyte is a memory cell (0 is no ; 1 is yes)
 antibodies-own [energy]
      ; energy = how many ticks the antibody has left to live
 measles-own [measles-duration]
 vaccines-own [vaccine-duration]
+     ; vaccine-duration = for how many ticks will the vaccines persist in the system
 
 to setup
   clear-all
   clear-output
-  ask patches [ set pcolor white]
+  ask patches [set pcolor white]
   set infected 0      ; at setup, the system is not infected with any antigens
-  set death-rate 15   ; values fit to give best response
+  set death-rate 15   ; values fit to give best response, no inherent meaning to these rates
   set reg-repro 15
   set active-color one-of base-colors        ;set active color to a random lymphocyte color
   set-default-shape lymphocytes "circle"     ; lymphocytes are circles
@@ -181,7 +183,7 @@ to reproduce  ; determine if the lymphocyte reproduces
 end
 
 to lymph-death  ; determine if the lymphocyte dies
-  if memory = 0 and random 100 < death-rate  ; and active = 0
+  if memory = 0 and random 100 < death-rate
       [
         die
       ]
@@ -555,23 +557,23 @@ The model consists of five classes of agents: Lymphocytes, Antigens, Antibodies,
 
 ### Lymphocytes 
 
-Lympohcytes in the model represent B-lymphocytes, and are depicted by a `circle` turtle shapes.
+Lympohcytes in the model represent B-lymphocytes, and are depicted by `circle` turtle shapes.
  
- * The diversity of of lymphocyte colors included in the model corresponds to diversity of B-lymphocte clones, or lymphocytes that bear the same antigen receptors, within the system. Each clone is represented by one of the 14 `base-colors` in Netlogo.
- * When setup is run, one color of lymphocytes is randomly selected to be the active color. The active color lymphocyte possesses antigen receptors specific to the antigen
- * Lymphocytes move randomly around the world
- * Lymphocytes have equal birth and death rates. Births and deaths are calculated probabastically for each lymphocyte at each time step, such that the population of each clone will exhibit stochastic variation (a random walk)
- * There is a "rescue effect" in place for each lymphocyte color, so if one color goes extinct another lymphocytes of that color will be added to the world and another lympohcyte will be randomly killed to offset it
- * If total lympohcytes fall below 235 (the reproduction rate will temporarily be doubled until the lympohcyte total returns to 250
+ * The diversity of lymphocyte colors included in the model corresponds to the diversity of B-lymphocte clones, or lymphocytes that bear the same antigen receptors, within the system. Each clone is represented by one of the 14 `base-colors` in Netlogo.
+ * Each time that **setup** is run, one color of lymphocytes is randomly selected to be the active color. The active color lymphocyte possesses antigen receptors specific to the antigen that will be introduced in this model run.
+ * Lymphocytes move randomly around the world, which represents a human body.
+ * Lymphocytes have equal birth and death rates. Births and deaths are calculated probabastically for each lymphocyte each tick, such that the population of each clone will exhibit stochastic variation (a random walk).
+ * There is a "rescue effect" in place for each lymphocyte color, so if one color goes extinct another lymphocytes of that color will be added to the world and a random lymphocyte will be killed to offset it.
+ * If the total population of lympohcytes falls below 235 the reproduction rate will temporarily be doubled until the lymphocyte total returns to 250.
 
 ### Antigens 
 
-Antigens are any foreign body that causes an immune response, in this model they are assumed to be pathogenic organisms or viruses that are capable of reproducing. They are depicted by black `monster` turtle shapes. 
+Antigens are any foreign body that causes an immune response. In this model they are assumed to be pathogenic organisms or viruses that are capable of reproducing. They are depicted by black `monster` turtle shapes. 
 
- *  Antigens are introduced by the **ANTIGEN** button, which will introduce the number specified by the antigen-load slider into the world
- * Antigens move randomly around the world
- * Antigens reproduce probabalistically at each time step
- * Antigens only die when they come into contact with an antibody
+ *  Antigens are introduced into the world by the **ANTIGENS** button. The number of antigens introduced is determined by the **antigen-load** slider.
+ * Antigens move randomly around the world.
+ * Antigens reproduce probabalistically each tick.
+ * Antigens only die when they come into contact with an antibody.
 
 ### Antigen-Lymphocyte interactions
 
@@ -579,57 +581,59 @@ When an antigen and a lymphocyte of the active color occupy the same or adjacent
 
 ![B lymphocyte developmental stages ](https://raw.githubusercontent.com/klemensj/Immune/master/Images/Lymphocytes.png)
 
-In the immune system, activated lymphocytes then further develop into two types of cells. Memory lymphocytes are depicted with the custom `m-circle` turtle shape, which is the same as lympocyte but bearing the letter "M". Memory lymphocytes are relatively long-lived cells, and in the model their birth and death rates are set to an order of magnitude lower than those of typical lymphocytes. 
+In the immune system, activated lymphocytes then further develop into two types of cells:
 
-The other cell produced on activation type is the plasma cell (the effector cell of the B-lympohcyte). The short-lived plasma cells produce antibodies for the duration of their activiation, and then die.     
+  * Memory lymphocytes are depicted with the custom `M-circle` turtle shape, which is the same as lympocyte but bearing the letter "M". Memory lymphocytes are relatively long-lived cells. In the model their birth and death rates are set to an order of magnitude lower than those of typical lymphocytes. 
+
+ * Plasma cells (the effector cell of the B-lympohcyte) are short-lived. Plasma cells produce antibodies for the duration of their activiation, and then die.     
 
 ### Antibodies
 
 Antibodies are produced by activated lymphocytes. 
 
- * Antibodies move in a straight line in a random direction away from the activated lympohcyte
- * Antibodies live for a fixed time and then die
- * If an antibody and an antigen occupy the same space patch at any time, the antigen dies
- * Antibodies effectiveness in clearing antigens can be adjusted with the **antibody-effectiveness** switch. In the high setting, antibodies travel 10 patches each time step and live for 8 ticks, while in the low setting, antibodies travel 5 patches each time step and live for 4 ticks. 
+ * Antibodies move in a straight line in a random direction away from the activated lympohcyte.
+ * Antibodies live for a fixed time and then die.
+ * If an antibody and an antigen occupy the same space patch at any time, the antigen dies.
+ * Antibodies' effectiveness in clearing antigens can be adjusted with the **antibody-effectiveness** switch. In the high setting, antibodies travel 10 patches each tick and live for 8 ticks. In the low setting, antibodies travel 5 patches each tick and live for 4 ticks. 
 
 ### Vaccines
 
-Vaccines function by stimulating a secondary immune response, often using killed or inactivated viral particles. Vaccine particles in the model are depicted by grey 'monste'" turtle shapes. Pushing the **VACCINE** button introduces a number of vaccine particles determined by the **vaccine-load** slider. 
+Vaccines function by stimulating a secondary immune response, often using killed or inactivated viral particles. Vaccine particles in the model are depicted by grey `monster` turtle shapes. Pushing the **VACCINE** button introduces a number of vaccine particles determined by the **vaccine-load** slider. 
 
- * Vaccine particles do not reproduce
- * Vaccine particles persist for 10 ticks and then die
- * Antibodies have no effect on vaccine particles
- * Vaccine particles do not count towards the values shown in the antigen plot
- * Lymphocytes respond to the vaccine particles in the same way as they respond to an antigen, producing activated lymphocytes, memory cells, and antibodies
+ * Vaccine particles do not reproduce.
+ * Vaccine particles persist for 10 ticks and then die.
+ * Antibodies have no effect on vaccine particles.
+ * Vaccine particles do not count towards the values shown in the antigen plot.
+ * Lymphocytes respond to the vaccine particles in the same way as they respond to an antigen, producing activated lymphocytes, memory cells, and antibodies.
 
 ### Measles
 
 Measles has been demonstrated to cause long-term "immune memory loss" by depleting the overall lymphocyte population, including memory cells for non-measles diseases (Mina et al. 2015). The introduction of a measles vaccine has thus resulted in a drop in mortality rates that is larger than what can be explained by the drop in measles cases alone.
 
-Pressing the **MEASLES** button causes the appearance of a large red 'monster' turtle. This turtle does not interact with any of the other turtles in the model, but causes an immediate 95% drop in lymphocyte populations is caused by the button press. This function is most useful to demonstrate what happens to the secondary immune response when measles intervenes between the primary and secondary response. It should be paired with a discussion of the results of Mina et al.'s (2015) study, I suggest showing students the data from Figure 1 of that paper or reading the news item about the study by Doucleff (2015). 
+Pressing the **MEASLES** button causes the appearance of a large red `monster` turtle. This turtle does not interact with any of the other turtles in the model, but causes an immediate 95% drop in lymphocyte populations. This function is most useful to demonstrate what happens to the secondary immune response when measles intervenes between the primary and secondary response. It should be paired with a discussion of the results of Mina et al.'s (2015) study. I suggest showing students the data from Figure 1 of that paper or reading the news item about the study by Doucleff (2015). 
 
 ## HOW TO USE IT
 
 ### The "setup" and "go/pause" buttons 
 
-**setup** clears all data and start a new simulation. Setup will create a population of 250 lymphocytes representing 14 different clones - or lymphocytes that have the same antigen receptors. **go/pause** will begin the simulation. Without any other input, each lymphocyte population will undergo a random walk that will be different each time you run the model. Pressing the **go/pause** button during the simulation will pause the simulation. Other buttons are active at this time, so the user could, for example, pause the simulation, press the **VACCINES** button, and then restart the simulation from that point with the vaccine particles now introduced. 
+**setup** clears all data and start a new simulation. Setup will create a population of 250 lymphocytes representing 14 different clones - lymphocytes that have the same antigen receptors. **go/pause** will begin the simulation. Without any other input, each lymphocyte population will undergo a random walk that will be different each time you run the model. Pressing the **go/pause** button during the simulation will pause the simulation. Other buttons are active at this time, so the user could, for example, pause the simulation, press the **VACCINE** button, and then restart the simulation from that point with the vaccine particles now introduced. 
 
 ### antibody-effectiveness  
 
-A swith that controls how effective antibodies are at clearing infections. In the **low** position antibodies move 3 spaces per round, and last for 4 rounds before dying. In the **high** position, antibodies move 10 spaces per round and last for 8 rounds. You should start with antibody-effectiveness in the low position.
+A switch that controls how effective antibodies are at clearing infections. In the **low** position, antibodies move 3 spaces per tick and last for 4 ticks before dying. In the **high** position, antibodies move 10 spaces per tick and last for 8 ticks. You should start with antibody-effectiveness in the low position, which is the default value.
 
 ### antigen-load
 
-A slider that determines the number of antigens that are added to the system each time the **ANTIGENS** button is pressed.
+A slider that determines the number of antigens that are added to the system each time the **ANTIGENS** button is pressed. The default value is 50.
 
 ### vaccine-load
 
-A slider that determines the number of vaccine particles are added to the system each time the **VACCINE** button is pressed.
+A slider that determines the number of vaccine particles that will be added to the system each time the **VACCINE** button is pressed. The default value is 200.
 
 ### reproduction-multiplier-when-active
 
-Lymphocytes have a default 15% probability of reproducing or dying at any time step. When activated, the reproductive rate (but not the death rate) will be increased by a factor determined by this slider. 
-_Example: when this slider is set to 3.0, the reproductive rate will triple for the duration of activation._
+Lymphocytes have a default 15% probability of reproducing or dying each tick. When a lymphocyte is activated, the reproductive rate (but not the death rate) will be increased by a factor determined by this slider. 
+_Example: when this slider is set to 3.0, the default value, the reproductive rate will triple for the duration of activation._
 
 ### ANTIGENS button
 
@@ -637,11 +641,11 @@ Pressing the **ANTIGENS** button at any point during the simulation introduces a
 
 ### VACCINE button
 
-Pressing the **VACCINE** button at any point during the simulation will introduce the vaccine particles to the system. The time at which the vaccine is introduced will be recorded in the **Output Window**. Pressing the vaccine button when there is already a very large population of memory cells may lead to slow run times due to the very large number of antibodies that are likely to be generated. 
+Pressing the **VACCINE** button at any point during the simulation will introduce vaccine particles to the system. The time at which the vaccine is introduced will be recorded in the **Output Window**. Pressing the vaccine button when there is already a very large population of memory cells may lead to slow run times due to the very large number of antibodies that are likely to be generated. 
 
 ### MEASLES button
 
-Pressing the **MEASLES** button will introduce a measles infection, which will cause 95% of the lympocytes in the simulation, selected randomly across all clones, to die immediately. A large red measles monster will appear for 5 time steps once the measles button is pressed; this turtle does not interact with any of the other agents in the simulation. The time at which the measles infection is introduced will be recorded in the **Output Window**
+Pressing the **MEASLES** button will introduce a measles infection, which will cause 95% of the lympocytes in the simulation, selected randomly across all clones, to die immediately. A large red measles monster will appear for 5 ticks once the measles button is pressed; this turtle does not interact with any of the other agents in the simulation. The time at which the measles infection is introduced will be recorded in the **Output Window**.
 
 ## THINGS TO NOTICE
 
@@ -661,7 +665,7 @@ For using this model in the classroom, you might create a data table that looks 
 
 ###Before you start
 
- 1. Set the speed slider to a rate that is slow enough to observe the dynamics of lymphocyte activation and the production of antibodies and memory cells. Somewhere around ticks per minute is about right. 
+ 1. Set the **speed** system slider to a rate that is slow enough to observe the dynamics of lymphocyte activation and the production of antibodies and memory cells. Somewhere around 200 ticks per minute is about right. 
 
  2. In order to understand the stochastic dynamics of the lymphocytes in the model, press **setup** and **go/pause**, but don't push any other buttons. 
 
@@ -677,7 +681,7 @@ For using this model in the classroom, you might create a data table that looks 
 
  3. Record on the data sheet the duration of the antigen infection under "Clearance Time Primary" in the row "Adaptive Trial 1."
 
- 4. Measure the peak of the antigen and antibody populations on their respective graphs by hovering over the line graph with your cursor. Record these numbers under "Antibody Peak Primary" and "Antigen Peak Primary" in the row "Adaptive Trial 1
+ 4. Measure the peak of the antigen and antibody populations on their respective graphs by hovering over the line graph with your cursor. Record these numbers under "Antibody Peak Primary" and "Antigen Peak Primary" in the row "Adaptive Trial 1."
 
  5. Press the **ANTIGENS** button, and then press **go/pause** to restart the model. Wait until the secondary infection clears, and then press **go/pause** again to pause. 
 
@@ -687,7 +691,7 @@ For using this model in the classroom, you might create a data table that looks 
 
 ####Study questions:
 
- * Which lymophcyte color has receptors that match this antigen in each model run?
+ * Which lymphocyte color has receptors that match this antigen in each model run?
  * Are antigen specific receptors present before or only after the antigen is introduced?
  * When are memory cells produced?
  * Describe the antibody graph in terms of the strength of the immune response.
@@ -698,7 +702,7 @@ For using this model in the classroom, you might create a data table that looks 
 
  1. Press **setup**, press **VACCINE** and then press **go/pause**. Press **go/pause** again to pause the model once the vaccine particles have cleared. As the model is running identify the vaccine particles and note that they do not reproduce like the antigens did. 
 
- 2. Measure the peak level of antibodies produced and record it in the row "Vaccine Trial 1" on your datasheet. Note that we are not recording antigen level or the duration of infection. (No live antigens exist and vaccine particle duration is a fixed quality of the model.)
+ 2. Measure the peak level of antibodies produced and record it in the row "Vaccine Trial 1" on your datasheet. Note that we are not recording antigen level or the duration of infection. (No live antigens exist and vaccine particle duration is a fixed quality of the model).
 
  3.  Press the **ANTIGENS** button, and then press **go/pause** to restart the model. Wait until the antigen infection clears, and then press **go/pause** again to pause. 
 
@@ -716,7 +720,7 @@ For using this model in the classroom, you might create a data table that looks 
 
  1. Press **setup**, press **ANTIGENS** and then press **go/pause**. Press **go/pause** again to pause the model once the infection has cleared. 
 
- 2. While the model is paused, record the data for "Clearance Time Primary" "Antibody Peak Primary" and "Antigen Peak Primary" in the row "Measles Trial 1"
+ 2. While the model is paused, record the data for "Clearance Time Primary," "Antibody Peak Primary," and "Antigen Peak Primary" in the row "Measles Trial 1."
 
  3. Press the **MEASLES** button. Observe the drop in lymphocyte populations and review the information from Mina et al. 2015. 
 
@@ -740,13 +744,13 @@ What immune system characteristic drives the secondary response? Try adjusting t
  
 Now adjust the **reproduction-multiplier-when-active** slider. Try to generate a secondary response at lower and higher multipliers. How does this affect the dynamics of adaptive immunity? Can you generate an adaptive immune response if the multiplier is set to 1?
 
-Reduce the vaccine load slider and compare the secondary response to those you recorded on your datasheet using the default settings. What happens to your ability to generate a secondary immune response with the model as that number decreases? What happens as you increase the vaccine load? Can you explain this result in terms of lymphocyte populations?
+Reduce the **vaccine-load** slider and compare the secondary response to those you recorded on your datasheet using the default settings. What happens to your ability to generate a secondary immune response with the model as that number decreases? What happens as you increase the vaccine load? Can you explain this result in terms of lymphocyte populations?
 
 ## EXTENDING THE MODEL
 
-A curve smoothing function for the plots might help students compare the graphs generated with conceptual versions presented in textbooks, on the other hand the stochastic nature of the model is perhaps best represented by the unsmoothed line.
+A curve smoothing function for the plots might help students compare the graphs generated with conceptual versions presented in textbooks. On the other hand, the stochastic nature of the model is perhaps best represented by the unsmoothed line.
 
-The model does not include many details of the immune system that might be taught in a general biology class, including the distinction between IgG and IgM antibodies, the role of helper T-cells and macrophages, or other phenomena which could potentially be modelled in Netlogo. This was intentional to keep the model focused on the process of clonal selection which Klemens identified as a particularly difficult conceptual hurdle for his students over the years.
+The model does not include many details of the immune system that might be taught in a general biology class, including the distinction between IgG and IgM antibodies, the role of helper T-cells and macrophages, or other phenomena which could potentially be modelled in Netlogo. This was intentional to keep the model focused on the process of clonal selection, which Klemens identified as a particularly difficult conceptual hurdle for his students over the years.
 
 No attempt has been made to translate values for antibody populations, antigen and vaccine loads, or the time scale of the model into biologically meaningful parameters. Translating to meaningful units may better prepare students for future work. 
 
