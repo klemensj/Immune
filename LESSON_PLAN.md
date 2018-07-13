@@ -1,19 +1,16 @@
-<style>
-	hr { height: 0; page-break-after: always; }
-</style>
 # ADAPTIVE IMMUNITY LESSON PLAN
 
 
 More details of model usage are included on the info tab of the model file. This document includes a printable lesson plan for deploying the model in the biology classroom. It is an edited version of information contained on the info tab.
 
 
-###Pre-class preparation
+### Pre-class preparation
 
 You may find it convenient to create a data table that looks something like this. The table can be drawn on a whiteboard if the model is to be presented as an instructor-guided demonstration or handed out as a worksheet for lab or activity use.
 
 ![Example Data sheet for classroom use ](https://raw.githubusercontent.com/klemensj/Immune/master/Images/Datasheet.png)
 
-###Background
+### Background
 
 This model is designed to demonstrate the process by which adaptive immunity arises as a result of clonal selection. The model also includes functions for simulating the dynamics of vaccination and the loss of adaptive immunity provoked by measles infection. It is intended to be used as an active learning activity in a college or high-school biology course.
 
@@ -82,19 +79,19 @@ Measles has been demonstrated to cause long-term "immune memory loss" by depleti
 Pressing the **MEASLES** button causes the appearance of a large red `monster` turtle. This turtle does not interact with any of the other turtles in the model, but causes an immediate 95% drop in lymphocyte populations. This function is most useful to demonstrate what happens to the secondary immune response when measles intervenes between the primary and secondary response. It should be paired with a discussion of the results of Mina et al.'s (2015) study. I suggest showing students the data from Figure 1 of that paper or reading the news item about the study by Doucleff (2015). 
 
 <hr>
-##Lesson Procedure
+## Lesson Procedure
 
-###First Steps
+### First Steps
 
  1. Set the **speed** system slider to a rate that is slow enough to observe the dynamics of lymphocyte activation and the production of antibodies and memory cells. Somewhere around 200 ticks per minute is about right. 
 
  2. In order to understand the stochastic dynamics of the lymphocytes in the model, press **setup** and **go/pause**, but don't push any other buttons. 
 
-####Study question:
+#### Study question:
 
  * Why do the populations of lymphocytes fluctuate if all clones have the same birth and death rates?
 
-###Adaptive Immunity
+### Adaptive Immunity
 
  1. Press **setup**, press **ANTIGENS** and then press **go/pause**. Press **go/pause** again to pause the model once the infection has cleared. As the model is running identify antigens, activated lymphocytes, antibodies, and memory cells.
 
@@ -110,7 +107,7 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
 
  7. Go back to step 1 and repeat this procedure at least two more times, recording the data on subsequent lines of the data sheet. 
 <hr>
-####Study questions:
+#### Study questions:
 
  * Which lymphocyte color has receptors that match this antigen in each model run?
  * Are antigen specific receptors present before or only after the antigen is introduced?
@@ -119,7 +116,7 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
  * Describe the antigen graph in terms of the infection intensity. 
  * Based on your data, what differences do we observe between the primary and secondary immune responses?
 
-###Vaccines
+### Vaccines
 
  1. Press **setup**, press **VACCINE** and then press **go/pause**. Press **go/pause** again to pause the model once the vaccine particles have cleared. As the model is running identify the vaccine particles and note that they do not reproduce like the antigens did. 
 
@@ -131,13 +128,13 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
 
 5. Go back to step 1 and repeat this procedure at least one more time, recording the data on subsequent lines of the data sheet. 
 
-####Study questions:
+#### Study questions:
 
  * We recorded the response to the antigens in the secondary infection columns. Why? Is this best considered a secondary or primary infection?
  * Compare your data to the adaptive immunity trials. What is different in the relationship of the two antibody peaks with and without the vaccine? To what can this difference be attributed?
  * How do duration and antigen level of the post-vaccination infections compare to the data you recorded for the adaptive trials?
 <hr>
-###Measles
+### Measles
 
  1. Press **setup**, press **ANTIGENS** and then press **go/pause**. Press **go/pause** again to pause the model once the infection has cleared. 
 
@@ -153,13 +150,13 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
 
  7. Go back to step 1 and repeat this procedure at least one more time, recording the data on subsequent lines of the data sheet. 
 
-####Study questions:
+#### Study questions:
 
  * What is the relationship between the primary and secondary response when measles intervenes? 
  * What are some potential medical implications of your answer to the previous question?
 
 
-###Further activities
+### Further activities
 
 If some students finish early, task them with one or more of the following questions:
 
