@@ -79,6 +79,7 @@ Measles has been demonstrated to cause long-term "immune memory loss" by depleti
 Pressing the **MEASLES** button causes the appearance of a large red `monster` turtle. This turtle does not interact with any of the other turtles in the model, but causes an immediate 95% drop in lymphocyte populations. This function is most useful to demonstrate what happens to the secondary immune response when measles intervenes between the primary and secondary response. It should be paired with a discussion of the results of Mina et al.'s (2015) study. I suggest showing students the data from Figure 1 of that paper or reading the news item about the study by Doucleff (2015). 
 
 <hr>
+
 ## Lesson Procedure
 
 ### First Steps
@@ -107,6 +108,7 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
 
  7. Go back to step 1 and repeat this procedure at least two more times, recording the data on subsequent lines of the data sheet. 
 <hr>
+
 #### Study questions:
 
  * Which lymphocyte color has receptors that match this antigen in each model run?
@@ -134,6 +136,7 @@ Pressing the **MEASLES** button causes the appearance of a large red `monster` t
  * Compare your data to the adaptive immunity trials. What is different in the relationship of the two antibody peaks with and without the vaccine? To what can this difference be attributed?
  * How do duration and antigen level of the post-vaccination infections compare to the data you recorded for the adaptive trials?
 <hr>
+
 ### Measles
 
  1. Press **setup**, press **ANTIGENS** and then press **go/pause**. Press **go/pause** again to pause the model once the infection has cleared. 
